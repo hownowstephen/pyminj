@@ -36,9 +36,6 @@
 	
 	# Function Definition
 	<funct_def> (int`char) -> <type> i ( <par_list> ) { <FDEF1> <st_list> }
-	# Allows us to put in new declarations between function definitions
-	# <FDEF_FIXED> (() -> ( <par_list> ) { <FDEF1> <st_list> }
-	# <FDEF_FIXED> (;`[) -> <index> ;
 	# Fix for grammar error
 	<FDEF1> (e|int`char) -> <decl> <FDEF1>
 	
@@ -133,11 +130,3 @@
 	<elem> (i) -> i <index>
 	<elem> (n) -> n
 	<elem> (c) -> c
-	
-
-	
-	# Nullifying productions to allow testing
-	#<b_type> (e|;) -> ;
-	#<v_list> (e|;) -> ;
-	#<exp> (e|;) -> ;
-	#<index> (e|;) -> ;
