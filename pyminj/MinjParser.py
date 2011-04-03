@@ -9,8 +9,12 @@ from Errors import SyntaxException
 
 class MinjParser(Parser):
     
+    Version = "1.2.1"
+    Author = "st_youn"
+    
     execState = None
     new = True    
+    generator = None
     
     def ParseToken(self,token,newToken=True):
         
@@ -35,7 +39,7 @@ class MinjParser(Parser):
         # If the state stack is empty, remove it and re-run the token parsing command
         if not currState: 
             self.state.pop()
-            return self.ParseToken(token,False)
+            return self.ParseToken(token)
         
         # Load the next element we're looking for
         elem = currState.NextElement()
@@ -46,10 +50,10 @@ class MinjParser(Parser):
             newState = self.AddState(elem,tkvalue)
             
             if (tkvalue in newState.GetLookahead()):
-                return self.ParseToken(token,False)
+                return self.ParseToken(token)
             elif newState.IsNullable():
                 self.state.pop()
-                return self.ParseToken(token,False)
+                return self.ParseToken(token)
             
         if elem and tkvalue in elem: 
             print tkvalue
@@ -57,45 +61,35 @@ class MinjParser(Parser):
             # print tkvalue
         # Otherwise, test if we can nullify the current state instead and retry
         elif currState.IsNullable():
-            print currState
             self.state.pop()
-            return self.ParseToken(token,False)
+            return self.ParseToken(token)
         
         else:
-            print "Lookahead: ", newState.GetLookahead(),newState.IsNullable()
-            print "Varerror: looking for ", elem
             raise SyntaxException("Token %s cannot go here" % tkvalue)
             
     def handleState(self,token,currState):
         stripped = currState.__str__().strip("< >")
         self.execState = stripped
-        print "Handling %s" % stripped
         try:
             function=getattr(self,"fn_%s" % stripped) 
             function(token,currState)    
         except:
-            pass
+            print currState.__str__()
         
-    def fn_prg(self,token,currState):
-        if self.new:
-            print token, currState.GetLookahead()
-    
-    def fn_decl(self,token,currState):
-        if self.new:
-            print token, currState.GetLookahead()
+    ''' Functions '''
+    def fn_funct_def(self,token,state):
+        if self.new: self.generator.HandleFunction(token,state)
         
-    def fn_main_f(self,token,currState):
-        if self.new:
-            print token, currState.GetLookahead()
-    
-    def fn_funct_def(self,token,currState):
-        if self.new:
-            print token, currState.GetLookahead()
-    
-    def fn_par_list(self,token,currState):
-        if self.new:
-            print token, currState.GetLookahead()
-    
-    def fn_p_type(self,token,currState):
-        if self.new:
-            print token, currState.GetLookahead() 
+    def fn_main_f(self,tk,st): return self.fn_funct_def(tk,st)
+            
+    ''' Statements '''
+    def fn_exp(self,token,state):
+        if self.new: 
+            self.generator.HandleStatement(token,state)
+    def fn_st(self,tk,st): return self.fn_exp(tk,st)
+    def fn_prim(self,tk,st): return self.fn_exp(tk,st)
+    def fn_mult_op(self,tk,st): return self.fn_exp(tk,st)
+    def fn_decl(self,tk,st): return self.fn_exp(tk,st)
+    def fn_NEW(self,tk,st): return self.fn_exp(tk,st)
+    def fn_N1(self,tk,st): return self.fn_exp(tk,st)
+    def fn_M1(self,tk,st): return self.fn_exp(tk,st)

@@ -123,5 +123,8 @@ class Parser(object):
         # Shouldn't reach this ever, but better safe than sorry
         return 'UNKNOWN'
     
+    def SetIntermediateCodeGenerator(self,generator):
+        self.generator = generator;
+    
     def GetVersion(self):
         return "%s (%s)" % (self.Version, self.Author)
