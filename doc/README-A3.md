@@ -1,6 +1,5 @@
-###############################################
-# Readme for PyMinJ v1.0 Compiler Milestone 3 #
-###############################################
+Readme for PyMinJ v1.0 Compiler Milestone 3
+===========================================
 
 Development
 -----------

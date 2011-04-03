@@ -1,6 +1,5 @@
-##########################################
-# Language Specification for PyMinJ v1.0 #
-##########################################
+Language Specification for PyMinJ v1.0
+======================================
 
 Overview
 --------
