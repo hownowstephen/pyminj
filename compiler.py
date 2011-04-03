@@ -24,7 +24,9 @@ listing = ListingWriter(fname)
 # Load a scanner for the file
 scanner = Scanner(fname,listing)
 
-symboltable = SymbolTable("conf/symboltable.cb")
+# Load a generator with a reference to the parser's symbol table
+generator = IntermediateGenerator(parser.symboltable)
+parser.SetIntermediateCodeGenerator(generator)
 
 # Write the listing header
 listing.WriteHeader(Author, {'compiler':Version,'scanner':scanner.GetVersion(),'parser':parser.GetVersion()})
@@ -47,12 +49,13 @@ while True:
             listing.ParsingError(e.__str__(),-1,-1)
         scanner.WriteLine()
         listing.WriteFooter()
-        symboltable.Print()
+        # parser.symboltable.Print()
+        generator.PrintListing()
         break
     else:
         try:
             state = parser.ParseToken(token)
-            symboltable.HandleState(state,token)
+            parser.symboltable.HandleState(state,token)
             # symbolTable.Analyze(token);
         except SyntaxException as e:
             scanner.WriteLine()
