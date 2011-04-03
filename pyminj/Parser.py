@@ -29,7 +29,7 @@ class Parser(object):
         
         # Load the syntax parser and the first known state
         self.syntax = Syntax(cfg)
-        self.startState = 'prg'
+        self.startState = INIT
         self.started = False
         self.symboltable = SymbolTable("conf/symboltable.cb")
             
