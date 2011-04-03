@@ -1,0 +1,44 @@
+# Compiled by PyMinJ v0.6.0
+# Scanner Version: 1.1.2 (st_youn)
+# Parser Version: 1.1.0 (st_youn)
+# @author Stephen Young (st_youn@encs.concordia.ca)
+-------------------------------
+ 0| class Average
+ 1| {
+ 2| # a sample program. It calculates the average of several numbers,
+ 3| # the first value gives how many numbers are to be read
+ 4| 	void main() # the main method
+ 5| 	{
+ 6| 	    int n;
+ 7| 	    int ave;
+ 8| 	    n=System.in.int();
+ 9| 	    if (n > 0)
+10| 	    {
+11| 	        int total = sum_int(n);
+12| 	        ave =(total/ n);
+13| 	        System.out('a','=',ave);
+14| 	    }
+15| 	    else System.out('e','r','r','o','r');
+16| 	    {
+17| 	        int x = sum_int(int m); # read and sum up m integers
+18| 	    }
+19| 	    int i=1;
+20| 	    int[] val = new int[100];
+21| 	    int res= 0;
+22| 	    while (i <=m)
+23| 	    {
+24| 	        val[i] =System.in.int();
+25| 	        res = res + val[i];
+26| 	        i = i+1;
+27| 	    }
+28| 	    return res;
+29|     }
+30|     
+31|     int sum_int(int v){
+32|     	char [] message = new char[100];
+33|     	int __sum_error;
+34|     	return v + 1;
+35|     }
+36| }
+-------------------------------
+0 Errors reported

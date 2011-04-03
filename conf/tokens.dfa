@@ -1,0 +1,69 @@
+##################################
+# A DFA representation of Pyminj #
+##################################
+
+#
+# TODO: Update syntax parser to use the states block as a proper enumeration to allow easily adding new states
+#
+
+# Final (accepting) states
+Accept: 1,2,3,4,5,6,7,8,11,12,15,16
+
+# Reverse Enumeration of states into logical names
+States:
+     0: START
+     1: IDENT
+     2: NUMERIC
+     3: OP_MINUS
+     4: OPERATOR
+     5: COMPARE
+     6: COMPARE2
+     7: ASSIGN
+     8: DELIMITER
+     9: AND_INTER
+    10: OR_INTER
+    11: LOGIC_AND
+    12: LOGIC_OR
+    13: CHAR_OPEN
+    14: CHAR_CHAR
+    15: CHARACTER_CONST
+    16: BLOCK_DELIMITER
+
+# Regex-powered transitions for states
+Transitions:
+
+    # Identifiers
+    <START>,[a-zA-Z_$] -> <IDENT>                   # Prefix for identifiers
+    <IDENT>,[a-zA-Z0-9_$] -> <IDENT>                # Allowed suffixes
+
+    # Numeric
+    <START>,\d -> <NUMERIC>                         # Positive digit
+    <NUMERIC>,\d -> <NUMERIC>                       # Allow arbitrary set of digits
+    <OP_MINUS>,\d -> <NUMERIC>                      # Number following dash implies a negative int
+
+    # Characters
+    <START>,(\') -> <CHAR_OPEN>                        # Opening of a char
+    <CHAR_OPEN>,[^\'] -> <CHAR_CHAR>                 # Read a single character
+    <CHAR_CHAR>,(\') -> <CHARACTER_CONST>              # Character constant token
+
+    # Operators
+    <START>,- -> <OP_MINUS>                         # Minus operator (separate because of negative numbers)
+    <START>,(\+|\*|/|%) -> <OPERATOR>               # Other operators
+
+    # Comparison
+    <START>,[><!] -> <COMPARE>                       # Basic greater/less than
+    <COMPARE>,= -> <COMPARE2>                       # Greater-equal / less-equal
+    <ASSIGN>,= -> <COMPARE2>                         # Equals-equals
+
+    # Assignment
+    <START>,= -> <ASSIGN>                           # Assignment operator
+
+    # Delimiters
+    <START>,(\(|\)|\[|\]|\.|,|;) -> <DELIMITER> # Delimiting characters
+    <START>,(\}|\{) -> <BLOCK_DELIMITER>
+
+    # Logical Operations
+    <START>,& -> <AND_INTER>                        # Intermediate step for &&
+    <AND_INTER>,& -> <LOGIC_AND>                    # Logical AND operator
+    <START>,\| -> <OR_INTER>                        # Intermediate step for ||
+    <OR_INTER>,\| -> <LOGIC_OR>                     # Logical OR operator

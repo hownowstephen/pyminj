@@ -1,0 +1,19 @@
+# Functions to call in the symbol table for various states
+# These functions will always receive <state>,<token> in order to allow them to
+# Accurately populate the symbol table
+
+<prg> -> HandleProgram
+
+<X1> -> HandleIdentifier
+<decl> -> HandleIdentifier
+<type> -> HandleCurrent
+<N1> -> HandleCurrent
+<delim> -> HandleCurrent
+<NEW> -> HandleCurrent
+<st> -> HandleCurrent
+
+<funct_def> -> HandleFunction
+<main_f> -> HandleMain
+
+<type> -> HandleIdentifier
+<par_list> -> HandleFunction

@@ -1,0 +1,30 @@
+# Compiled by PyMinJ v0.6.0
+# Scanner Version: 1.1.2 (st_youn)
+# Parser Version: 1.1.0 (st_youn)
+# @author Stephen Young (st_youn@encs.concordia.ca)
+-------------------------------
+ 0| class SymbolError { 
+ 1| 	
+ 2| 	int globalVar1;
+ 3| 	char globalVar2;
+ 4| 	void main(){ 
+ 5| 		int localVar1;
+ 6| 		char localVar2;
+ 7| 		# Re declare a global var
+ 8| 		char globalVar2;
+ 9| 		return 0;
+10| 	} 
+11| 	
+12| 	int failhere(){ 
+13| 		
+14| 		int var1;
+15| 		char var1;
+     ^Symbol Table Error: 'Could not redeclare var1'
+
+16| 		return 0; 
+17| 	}
+18| 
+19| }
+-------------------------------
+1 Errors reported
+	[Line 16, Char 4] 	Symbol Table Error: 'Could not redeclare var1'

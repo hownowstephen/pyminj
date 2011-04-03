@@ -1,0 +1,32 @@
+# Compiled by PyMinJ v0.6.0
+# Scanner Version: 1.1.2 (st_youn)
+# Parser Version: 1.1.0 (st_youn)
+# @author Stephen Young (st_youn@encs.concordia.ca)
+-------------------------------
+ 0| class x {
+ 1| 	# Who knows why, but comments can't start the file
+ 2| 	int [] test = new int[20];
+ 3| 	
+ 4| 	# Comment
+ 5| 	void main(){
+ 6| 		char var1;
+ 7| 		char var2;
+ 8| 		return null;
+ 9| 	}
+10| 	
+11| 	int superfunction(int par1, int par2){
+12| 		x = par1 % subfunction(par2);
+13| 		while(x<10){
+14| 			x=x+1;
+15| 			System.out(x);
+16| 		}
+17| 		return x;
+18| 	}
+19| 	
+20| 	int subfunction(int value){
+21| 		value = value % 100 + value;
+22| 		return value;
+23| 	}
+-------------------------------
+1 Errors reported
+	 Parsing Error: 'Code block not terminated, missing }'

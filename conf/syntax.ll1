@@ -1,0 +1,143 @@
+################################################################################
+#                      PyMinJ Syntax definition config                         #
+################################################################################
+# @author Stephen Young
+# @email st_youn@encs.concordia.ca
+# @id 9736247
+#
+# @note Syntax of this file:
+#	Each non-empty, non commented line is formatted as follows:
+#	<PRODUCTION_VAR> ([e|]LOOKAHEAD) -> TKV TKV ... TKV (NON-COMMA-SEPARATED)
+#	PRODUCTION_VAR is a variable name
+#	e| is optional, used to denote a variable that is nullable
+#	LOOKAHEAD are the possible lookahead values for this production
+#	TKV represents an explicit token or a value
+# @note: TKV/LOOKAHEAD values can also be given in the form token`token`token, where the
+#		 backtick (`) works as an OR statement
+#
+#################################################################################
+
+	# Main Program production
+	<prg> (class) -> class i { <X1> <main_f> <X2> }
+	
+	# Added productions to simulate looping
+	<X1> (e|int`char) -> <decl> <X1>
+	<X2> (e|int`char) -> <funct_def> <X2>
+	
+	# Refactored declaration
+	<decl> (int`char) -> <type> <N1>
+	<N1> (i) -> i ;
+	<N1> ([) -> [ ] i = <NEW> ;
+	<NEW> (new) -> new <type> [ n ]
+	
+	# Main Function
+	<main_f> (void) -> void main ( ) { <M1> <st_list> }
+	<M1> (e|int`char) -> <decl> <M1>
+	
+	# Function Definition
+	<funct_def> (int`char) -> <type> i ( <par_list> ) { <FDEF1> <st_list> }
+	# Allows us to put in new declarations between function definitions
+	# <FDEF_FIXED> (() -> ( <par_list> ) { <FDEF1> <st_list> }
+	# <FDEF_FIXED> (;`[) -> <index> ;
+	# Fix for grammar error
+	<FDEF1> (e|int`char) -> <decl> <FDEF1>
+	
+	# Parameter List
+	<par_list> (e|int`char) -> <p_type> i <PLIST1>
+	<PLIST1> (e|,) -> , <p_type> i <PLIST1>
+	
+	# Parameter Types
+	<p_type> (int`char) -> <type> <N2>
+	<N2> (e|[) -> [ ]
+	
+	# Types
+	<type> (int`char) -> int`char
+	<n_type> (e|int`char) -> <type>
+	
+	# Statements
+	<st> ({) -> <comp_st>
+	<st> (i) -> i <N3>
+	<N3> ([`=) -> <index> = <N4> ;
+	<N3> (() -> ( <v_list> )
+	<N4> (-`i`n`c`() -> <exp>
+	<N4> (System) -> System . in . <type> ( )
+	<st> (if) -> if <l_exp> <st> else <st>
+	<st> (while) -> while <l_exp> <st>
+	<st> (return) -> return <exp>
+	<st> (System) -> System . out ( <v_list> ) ;
+	<st> (;) -> ;
+	<st> (int`char) -> <p_type> i <N8>
+	<N8> (=) -> = <N9>
+	<N8> (;) -> ;
+	
+	<N9> (new) -> <NEW>
+	<N9> ((`-`i`n`c`System) -> <N4>
+	
+	# Comparison Statement
+	<comp_st> ({) -> { <st_list> }
+	
+	# Statement List
+	<st_list> (i`{`if`while`return`System`;) -> <st> <W>
+	<st_list> (int`char) -> <type> <st> <W>
+	<W> (e|i`{`if`while`return`System`;`int`char) -> <st> <W>
+	
+	# Allow new variables within statement blocks
+	# <st_list> (int`char) -> int`char i <N3> <st>
+	
+	# Variable
+	<var> (i) -> i <index>
+	
+	# Index
+	<index> (e|[) -> [ <exp> ]
+	
+	# logical expression
+	<l_exp> (() -> <rel_exp> <N5>
+	<N5> (e|&&`||) -> <log_op> <l_exp>
+	
+	# Logical operator
+	<log_op> (&&`||) -> &&`||
+	
+	# Relation expression
+	<rel_exp> (() -> ( <exp> <rel_op> <exp> )
+	
+	# Relation operator
+	<rel_op> (<`>`==`<=`>=`!=) -> <`>`==`<=`>=`!=
+	
+	# Expressions
+	<exp> (i`c`n`() -> <term> <exp1>
+	<exp> (-) -> - <term> <exp1>
+	<exp1> (e|+`-) -> <add_op> <term> <exp1>
+	
+	# Terminal
+	<term> (i`c`n`() -> <prim> <term1>
+	<term1> (e|*`/`%) -> <mult_op> <prim> <term1>
+	
+	# Primary
+	<prim> (i) -> i <N6>
+	<prim> (n) -> n
+	<prim> (c) -> c
+	<prim> (() -> ( <exp> )
+	<N6> ([`]`;`+`−`∗`/`%`<`<=`>`>=`==`!=`)) -> <index>
+	<N6> (() -> ( <v_list> )
+	
+	# Arithmetics operations
+	<add_op> (+`-) -> +`-
+	<mult_op> (*`/`%) -> *`/`%
+	
+	# Variable list
+	<v_list> (i`n`c) -> <elem> <N7>
+	<v_list> (int`char) -> <type> <elem> <N7>
+	<N7> (e|,) -> , <n_type> <elem> <N7>
+	
+	# Element
+	<elem> (i) -> i <index>
+	<elem> (n) -> n
+	<elem> (c) -> c
+	
+
+	
+	# Nullifying productions to allow testing
+	#<b_type> (e|;) -> ;
+	#<v_list> (e|;) -> ;
+	#<exp> (e|;) -> ;
+	#<index> (e|;) -> ;

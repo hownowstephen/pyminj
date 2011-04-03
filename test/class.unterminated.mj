@@ -1,0 +1,24 @@
+class x {
+	# Who knows why, but comments can't start the file
+	int [] test = new int[20];
+	
+	# Comment
+	void main(){
+		char var1;
+		char var2;
+		return null;
+	}
+	
+	int superfunction(int par1, int par2){
+		x = par1 % subfunction(par2);
+		while(x<10){
+			x=x+1;
+			System.out(x);
+		}
+		return x;
+	}
+	
+	int subfunction(int value){
+		value = value % 100 + value;
+		return value;
+	}

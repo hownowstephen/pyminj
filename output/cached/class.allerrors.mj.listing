@@ -1,0 +1,20 @@
+# Compiled by PyMinJ v0.6.0
+# Scanner Version: 1.1.2 (st_youn)
+# Parser Version: 1.1.0 (st_youn)
+# @author Stephen Young (st_youn@encs.concordia.ca)
+-------------------------------
+ 0| class devel {
+ 1| 
+ 2| 	void main(){
+ 3| 		return ~;
+             ^Scanning Error: Unrecognized Token
+
+ 4| 	}
+     ^Parsing Error: 'Token } cannot go here'
+
+
+-------------------------------
+3 Errors reported
+	[Line 3, Char 12] 	Scanning Error: Unrecognized Token
+	[Line 4, Char 4] 	Parsing Error: 'Token } cannot go here'
+	 Parsing Error: 'Code block not terminated, missing }'

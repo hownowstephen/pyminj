@@ -1,0 +1,67 @@
+# Compiled by PyMinJ v0.6.0
+# Scanner Version: 1.1.2 (st_youn)
+# Parser Version: 1.1.0 (st_youn)
+# @author Stephen Young (st_youn@encs.concordia.ca)
+-------------------------------
+ 0| class Average
+ 1| {
+ 2| # a sample program. It calculates the average of several numbers,
+ 3| # the first value gives how many numbers are to be read
+ 4| void main() # the main method
+ 5| {
+ 6|     int n,a
+             ^Parsing Error: 'Looking for ;, found ,'
+
+ve;
+ 7|     n
+       ^Parsing Error: 'Token ; cannot go here'
+
+=In.i
+            ^Parsing Error: 'Token . cannot go here'
+
+nt(
+               ^Parsing Error: 'Looking for ;, found int'
+
+)
+                ^Parsing Error: 'Looking for }, found ('
+
+;
+                 ^Parsing Error: 'Looking for }, found )'
+
+
+ 8|     if (n > 0):
+                  ^Scanning Error: Unrecognized Token
+
+ 9|     {
+10|     int total = sum_int(n);
+11|     ave =(total/ n);
+12|     System.out('a','=',ave);
+13|     }
+14|     else System.out('e','r','r','o','r');
+15|     {
+16|         int sum_int(int m) # read and sum up m integers
+17|     }
+18|     int i~=1;
+             ^Scanning Error: Unrecognized Token
+
+19|     int[] val = new int[100];
+20|     int res= 0;
+21|     while (i <=m)
+22|     {
+23|         val[i] =System.in.int();
+24|         res = res + val[i];
+25|         i = i+1;
+26|     }
+27|     return res;
+28|     }
+29| }
+-------------------------------
+8 Errors reported
+	[Line 6, Char 12] 	Parsing Error: 'Looking for ;, found ,'
+	[Line 7, Char 6] 	Parsing Error: 'Token ; cannot go here'
+	[Line 7, Char 11] 	Parsing Error: 'Token . cannot go here'
+	[Line 7, Char 14] 	Parsing Error: 'Looking for ;, found int'
+	[Line 7, Char 15] 	Parsing Error: 'Looking for }, found ('
+	[Line 7, Char 16] 	Parsing Error: 'Looking for }, found )'
+	[Line 8, Char 17] 	Scanning Error: Unrecognized Token
+	[Line 18, Char 12] 	Scanning Error: Unrecognized Token
