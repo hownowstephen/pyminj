@@ -56,7 +56,6 @@ class MinjParser(Parser):
                 return self.ParseToken(token)
             
         if elem and tkvalue in elem: 
-            print tkvalue
             return currState
             # print tkvalue
         # Otherwise, test if we can nullify the current state instead and retry
@@ -74,7 +73,7 @@ class MinjParser(Parser):
             function=getattr(self,"fn_%s" % stripped) 
             function(token,currState)    
         except:
-            print currState.__str__()
+            pass #print currState.__str__()
         
     ''' Functions '''
     def fn_funct_def(self,token,state):

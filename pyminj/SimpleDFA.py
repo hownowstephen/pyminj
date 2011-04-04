@@ -19,12 +19,12 @@ class SimpleDFA:
     with focus on usage in a compilation scanner component
     '''
 
-    CurrState = 0               # The current active state in the machine
-    TransitionTable = {}        # The available transitions in the system
-    StateTransitions = {}       # The available transitions from a given state
-    FinalStates = []            # States considered final
-    States = {}                 # Enumeration of states as string values
-
+    def __init__(self):
+        self.CurrState = 0               # The current active state in the machine
+        self.TransitionTable = {}        # The available transitions in the system
+        self.StateTransitions = {}       # The available transitions from a given state
+        self.FinalStates = []            # States considered final
+        self.States = {}                 # Enumeration of states as string values
 
     def AddFinalState(self, state):
         '''Adds to the list of defined "accept" states'''
@@ -108,6 +108,7 @@ class SimpleDFA:
 
     def Load(self,file):
         '''Loads and parses .dfa configuration file'''
+        
         # Compile our regular expressions
         re_accept = r"^Accept:\W*([\d,]+)$"
         re_transitions = r"^Transitions:$"

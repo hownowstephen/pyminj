@@ -3,32 +3,33 @@
 # Parser Version: 1.2.1 (st_youn)
 # @author Stephen Young (st_youn@encs.concordia.ca)
 -------------------------------
- 0| class x { 
- 1| 
- 2| 	void main(){
- 3| 		int y;
- 4| 		if(x == 1){
- 5| 			return 0+1*x; 
- 6| 			}else{
- 7| 			return 1;
- 8| 		}
- 9| 		while(x > 100){
-10| 			x = x - 1
-              ^Parsing Error: 'Token - cannot go here'
+ 0| class DoSomething { 
+ 1| 	
+ 2| 	void main(){ return 0; }
+ 3| 	
+ 4| 	int incdec(int param){
+ 5| 		param = increment(param);
+ 6| 		param = decrement(param);
+ 7| 	}
+ 8| 	
+ 9| 	int increment(int param){
+10| 		param = param + 1;
+11| 		return param;
+12| 	}
+13| 	
+14| 	int decrement(int param){
+15| 		param = param - 1
+                     ^Parsing Error: 'Token - cannot go here'
 
 ;
-               ^Parsing Error: 'Token n cannot go here'
+                      ^Parsing Error: 'Token n cannot go here'
 
 
-11| 		}
-12| 		return x;
-13| 	}
-14| 	
-15| 	int fn1(int param1,int param2){
-16| 		return param1 + param2;
+16| 		return param;
 17| 	}
-18| }
+18| 	
+19| }
 -------------------------------
 2 Errors reported
-	[Line 10, Char 13] 	Parsing Error: 'Token - cannot go here'
-	[Line 10, Char 14] 	Parsing Error: 'Token n cannot go here'
+	[Line 15, Char 20] 	Parsing Error: 'Token - cannot go here'
+	[Line 15, Char 21] 	Parsing Error: 'Token n cannot go here'

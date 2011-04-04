@@ -1,0 +1,24 @@
+##################################
+# A DFA representation of Pyminj #
+##################################
+
+# Final (accepting) states
+Accept: 1,2,3,4,5,6,7,8,11,12,15,16
+
+# Reverse Enumeration of states into logical names
+States:
+     0: START
+     1: ASSN
+     2: ASSN1
+     3: ASSN2
+
+# Regex-powered transitions for states
+Transitions:
+
+    # Identifiers
+    <START>,IDENT -> <ASSN>	
+    <ASSN>,ASSIGN -> <ASSN1>	
+    # Right hand side of assignment statement
+    <ASSN1>,NUMERIC -> <ASSN2>
+    <ASSN1>,IDENT -> <ASSN2>
+    <ASSN2>,OPERATOR -> <ASSN1>

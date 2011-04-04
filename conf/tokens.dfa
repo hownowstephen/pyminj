@@ -2,9 +2,6 @@
 # A DFA representation of Pyminj #
 ##################################
 
-#
-# TODO: Update syntax parser to use the states block as a proper enumeration to allow easily adding new states
-#
 
 # Final (accepting) states
 Accept: 1,2,3,4,5,6,7,8,11,12,15,16
