@@ -80,6 +80,7 @@ class IntermediateGenerator:
         if token == self.lastToken: return
         self.lastToken = token
         
+        # Terminate flow control
         if value == "}":
             try:
                 self.function['listing'].append([Token("FLOW_CONTROL","end%s" % self.controlStack.pop())])
@@ -98,11 +99,17 @@ class IntermediateGenerator:
             self.expression.append(token)
             if type == "FLOW_CONTROL" and value != "return":
                 self.controlStack.append(value)
+        elif type == "DELIMITER": 
+            self.expression.append(token) 
         else:
             self.lastToken = None        
     
     def PrintListing(self):
+        self.symboltable.Print()
         self.translator.TranslateSymbols('global')
         for line in self.listing:
-            self.translator.TranslateFunction(line)
+            l = line['listing']
+            for s in l:
+                print s
+            #self.translator.TranslateFunction(line)
             

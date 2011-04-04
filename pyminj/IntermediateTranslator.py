@@ -101,7 +101,7 @@ class IntermediateTranslator:
         
         code = None
         # All assignment states"
-        if state.strip("12") == "ASSN":
+        if state.strip("123") == "ASSN":
             if type == "IDENT":
                 param = self.Lookup(token.GetValue(),fname)
                 code = self.currCode.SetParam(param)
@@ -109,6 +109,9 @@ class IntermediateTranslator:
                 code = self.currCode.SetParam(token)
             else:
                 self.currCode.SetMethod(token.GetValue())
+            if state == "ASSN3":
+                #code = self.currCode.SetParam(token)
+                self.currCode.SetMethod("setparam")
         # All branch states
         if state.strip("123") == "BRANCH":
             if type == "IDENT":
@@ -119,7 +122,7 @@ class IntermediateTranslator:
             else:
                 method = self.currCode.SetMethod(token.GetValue())
                 if method: 
-                    self.nextMethod.append(method)     
+                    self.nextMethod.append(method)   
         if code: 
             self.currCode.ResetParam2()
             print "CODE:",code

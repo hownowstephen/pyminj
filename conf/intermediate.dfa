@@ -11,10 +11,11 @@ States:
      1: ASSN
      2: ASSN1
      3: ASSN2
-     4: BRANCH
-     5: BRANCH1
-     6: BRANCH2
-     7: BRANCH3
+     4: ASSN3
+     5: BRANCH
+     6: BRANCH1
+     7: BRANCH2
+     8: BRANCH3
 
 # Regex-powered transitions for states
 Transitions:
@@ -26,6 +27,9 @@ Transitions:
     <ASSN1>,NUMERIC -> <ASSN2>
     <ASSN1>,IDENT -> <ASSN2>
     <ASSN2>,OPERATOR -> <ASSN1>
+    <ASSN2>,IDENT -> <ASSN3> 			
+    <ASSN2>,NUMERIC -> <ASSN3>
+    <ASSN3>,.* -> <ASSN3>
     
     <START>,FLOW_CONTROL -> <BRANCH>
     <BRANCH>,IDENT -> <BRANCH1>

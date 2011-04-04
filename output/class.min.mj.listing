@@ -8,26 +8,35 @@
  2| 	int x;
  3| 	
  4| 	void main(){ 
- 5| 		x = odd(2);
- 6| 		return 0;
- 7| 	}
- 8| 	
- 9| 	int odd(int param){
-10| 		if(param > 0){
-11| 			return param % 2;
-12| 		}else{
-13| 			param = param * -
+ 5| 		x = System.in.int();
+ 6| 		x = x * 1
+             ^Parsing Error: 'Token * cannot go here'
+
+;
+              ^Parsing Error: 'Token n cannot go here'
+
+
+ 7| 		return 0;
+ 8| 	}
+ 9| 	
+10| 	int odd(int param){
+11| 		if(param > 0){
+12| 			return param % 2;
+13| 		}else{
+14| 			param = param * -
                       ^Parsing Error: 'Token * cannot go here'
 
 1;
                         ^Parsing Error: 'Token n cannot go here'
 
 
-14| 			return param % 2;
-15| 		}
-16| 	}
-17| }
+15| 			return param % 2;
+16| 		}
+17| 	}
+18| }
 -------------------------------
-2 Errors reported
-	[Line 13, Char 21] 	Parsing Error: 'Token * cannot go here'
-	[Line 13, Char 23] 	Parsing Error: 'Token n cannot go here'
+4 Errors reported
+	[Line 6, Char 12] 	Parsing Error: 'Token * cannot go here'
+	[Line 6, Char 13] 	Parsing Error: 'Token n cannot go here'
+	[Line 14, Char 21] 	Parsing Error: 'Token * cannot go here'
+	[Line 14, Char 23] 	Parsing Error: 'Token n cannot go here'

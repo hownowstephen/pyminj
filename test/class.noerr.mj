@@ -6,6 +6,7 @@ class Average
 	{
 	    int n;
 	    int ave;
+	    int m;
 	    n=System.in.int();
 	    if (n > 0)
 	    {
@@ -15,7 +16,7 @@ class Average
 	    }
 	    else System.out('e','r','r','o','r');
 	    {
-	        int x = sum_int(int m); # read and sum up m integers
+	        int x = sum_int(m); # read and sum up m integers
 	    }
 	    int i=1;
 	    int[] val = new int[100];

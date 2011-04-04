@@ -3,7 +3,8 @@ class DoSomething {
 	int x;
 	
 	void main(){ 
-		x = odd(2);
+		x = System.in.int();
+		x = x * 1;
 		return 0;
 	}
 	
