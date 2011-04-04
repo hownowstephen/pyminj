@@ -73,7 +73,8 @@ class MinjParser(Parser):
             function=getattr(self,"fn_%s" % stripped) 
             function(token,currState)    
         except:
-            pass #print currState.__str__()
+            if token.GetType() == "BLOCK_DELIMITER":
+                self.generator.HandleStatement(token,currState)
         
     ''' Functions '''
     def fn_funct_def(self,token,state):
@@ -92,3 +93,5 @@ class MinjParser(Parser):
     def fn_NEW(self,tk,st): return self.fn_exp(tk,st)
     def fn_N1(self,tk,st): return self.fn_exp(tk,st)
     def fn_M1(self,tk,st): return self.fn_exp(tk,st)
+    def fn_add_op(self,tk,st): return self.fn_exp(tk,st)
+    def fn_v_list(self,tk,st): return self.fn_exp(tk,st)

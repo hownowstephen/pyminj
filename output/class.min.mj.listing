@@ -5,31 +5,29 @@
 -------------------------------
  0| class DoSomething { 
  1| 	
- 2| 	void main(){ return 0; }
+ 2| 	int x;
  3| 	
- 4| 	int incdec(int param){
- 5| 		param = increment(param);
- 6| 		param = decrement(param);
+ 4| 	void main(){ 
+ 5| 		x = odd(2);
+ 6| 		return 0;
  7| 	}
  8| 	
- 9| 	int increment(int param){
-10| 		param = param + 1;
-11| 		return param;
-12| 	}
-13| 	
-14| 	int decrement(int param){
-15| 		param = param - 1
-                     ^Parsing Error: 'Token - cannot go here'
+ 9| 	int odd(int param){
+10| 		if(param > 0){
+11| 			return param % 2;
+12| 		}else{
+13| 			param = param * -
+                      ^Parsing Error: 'Token * cannot go here'
 
-;
-                      ^Parsing Error: 'Token n cannot go here'
+1;
+                        ^Parsing Error: 'Token n cannot go here'
 
 
-16| 		return param;
-17| 	}
-18| 	
-19| }
+14| 			return param % 2;
+15| 		}
+16| 	}
+17| }
 -------------------------------
 2 Errors reported
-	[Line 15, Char 20] 	Parsing Error: 'Token - cannot go here'
-	[Line 15, Char 21] 	Parsing Error: 'Token n cannot go here'
+	[Line 13, Char 21] 	Parsing Error: 'Token * cannot go here'
+	[Line 13, Char 23] 	Parsing Error: 'Token n cannot go here'

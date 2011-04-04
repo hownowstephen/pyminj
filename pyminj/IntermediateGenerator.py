@@ -5,6 +5,7 @@ Created on Apr 3, 2011
 '''
 
 from IntermediateTranslator import IntermediateTranslator
+from Token import Token
 
 # Define some constants for various usage
 MAIN_FUNCTION = "<main_f>"
@@ -21,6 +22,7 @@ class IntermediateGenerator:
     headers = []
     function = {}
     expression = []
+    controlStack = []
     
     executionState = PROGRAM_STATE
     lastToken = None
@@ -43,6 +45,7 @@ class IntermediateGenerator:
         
         type = token.GetType()
         value = token.GetValue()
+        
         if type == "BLOCK_DELIMITER":
             try:
                 self.function['listing']
@@ -51,7 +54,7 @@ class IntermediateGenerator:
             except:
                 self.function['listing'] = []
                 
-        elif type == "DATA_TYPE":
+        if type == "DATA_TYPE":
             try:
                 self.function['type']
             except:
@@ -77,15 +80,24 @@ class IntermediateGenerator:
         if token == self.lastToken: return
         self.lastToken = token
         
+        if value == "}":
+            try:
+                self.function['listing'].append([Token("FLOW_CONTROL","end%s" % self.controlStack.pop())])
+            except:
+                pass
+        
         if value == SEMICOLON or type == "BLOCK_DELIMITER":
             self.lastToken = None
             if self.expression and self.executionState == PROGRAM_STATE:
                 pass #self.listing.append(self.expression)
             elif self.expression:
                 self.function['listing'].append(self.expression)
+            
             self.expression = []
         elif type != "DELIMITER" or self.executionState == PROGRAM_STATE:
             self.expression.append(token)
+            if type == "FLOW_CONTROL" and value != "return":
+                self.controlStack.append(value)
         else:
             self.lastToken = None        
     

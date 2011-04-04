@@ -47,6 +47,9 @@ class Token:
     
     def __str__(self):
         return "<%s:%s>" % (self.Type,self.Value)
+    
+    def __repr__(self):
+        return self.__str__()
 
     def __nonzero__(self):
         return not (self.Type is None or self.Value is None)

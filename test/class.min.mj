@@ -1,20 +1,18 @@
 class DoSomething { 
 	
-	void main(){ return 0; }
+	int x;
 	
-	int incdec(int param){
-		param = increment(param);
-		param = decrement(param);
+	void main(){ 
+		x = odd(2);
+		return 0;
 	}
 	
-	int increment(int param){
-		param = param + 1;
-		return param;
+	int odd(int param){
+		if(param > 0){
+			return param % 2;
+		}else{
+			param = param * -1;
+			return param % 2;
+		}
 	}
-	
-	int decrement(int param){
-		param = param - 1;
-		return param;
-	}
-	
 }
