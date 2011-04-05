@@ -4,7 +4,7 @@ Created on Apr 3, 2011
 @author: stephen
 '''
 
-from IntermediateTranslator import IntermediateTranslator
+from ThreeCodeGenerator import ThreeCodeGenerator
 from Token import Token
 
 # Define some constants for various usage
@@ -32,7 +32,6 @@ class IntermediateGenerator:
     
     def __init__(self,symboltable):
         self.symboltable = symboltable
-        self.translator = IntermediateTranslator(symboltable)
                 
     def HandleFunction(self,token,state):
         """
@@ -106,10 +105,10 @@ class IntermediateGenerator:
     
     def PrintListing(self):
         self.symboltable.Print()
-        self.translator.TranslateSymbols('global')
         for line in self.listing:
-            l = line['listing']
-            for s in l:
-                print s
-            #self.translator.TranslateFunction(line)
+            context = line['name']
+            for tkset in line['listing']:
+                generator = ThreeCodeGenerator(self.symboltable,tkset,context)
+                output = generator.Parse()
+
             

@@ -6,37 +6,15 @@
  0| class DoSomething { 
  1| 	
  2| 	int x;
- 3| 	
- 4| 	void main(){ 
- 5| 		x = System.in.int();
- 6| 		x = x * 1
-             ^Parsing Error: 'Token * cannot go here'
-
-;
-              ^Parsing Error: 'Token n cannot go here'
-
-
- 7| 		return 0;
- 8| 	}
- 9| 	
-10| 	int odd(int param){
-11| 		if(param > 0){
-12| 			return param % 2;
-13| 		}else{
-14| 			param = param * -
-                      ^Parsing Error: 'Token * cannot go here'
-
-1;
-                        ^Parsing Error: 'Token n cannot go here'
-
-
-15| 			return param % 2;
-16| 		}
-17| 	}
-18| }
+ 3| 	void main(){ 
+ 4| 		x = 1;
+ 5| 		#x = inc(x);
+ 6| 		return x;
+ 7| 	}
+ 8| 	
+ 9| 	int inc(int var){
+10| 		return var + 1;
+11| 	}
+12| }
 -------------------------------
-4 Errors reported
-	[Line 6, Char 12] 	Parsing Error: 'Token * cannot go here'
-	[Line 6, Char 13] 	Parsing Error: 'Token n cannot go here'
-	[Line 14, Char 21] 	Parsing Error: 'Token * cannot go here'
-	[Line 14, Char 23] 	Parsing Error: 'Token n cannot go here'
+0 Errors reported
