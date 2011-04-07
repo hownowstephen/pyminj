@@ -2,9 +2,9 @@ class DoSomething {
 	
 	int x;
 	void main(){ 
-		x = 1;
-		#x = inc(x);
-		return x + test(y);
+		x = 1 + 3;
+		x = inc(x) - inc(x) + 1;
+		return x + 1;
 	}
 	
 	int inc(int var){

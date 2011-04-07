@@ -1,4 +1,4 @@
-import string
+import string,sys
 from Token import Token
 
 class RuntimeEnum:
@@ -13,7 +13,7 @@ class RuntimeEnum:
         try:
             self.states[name]
         except:
-            self.states[name] = self.count
+            self.states[name] = name
             self.count += 1
         return self.states[name]
     
@@ -27,6 +27,7 @@ class ThreeCodeGenerator:
                "<=": "lte", ">=": "gte", "!=": "ne"}
     
     def __init__(self,symboltable,tokenset,context):
+        
         self.symbols = symboltable
         self.tokens = tokenset
         self.output = []
@@ -37,16 +38,50 @@ class ThreeCodeGenerator:
         self.actions = []
         self.params = []
         
-        self.contexts = []
-        #print "Handling",tokenset
+        self.codes = []
+        self.tmp = -1
+        self.currOperator = None
         
     def AddParam(self,token):
         self.params.append(token)
     def AddAction(self,token):
         self.actions.append(token)
         
+    def AddCode(self,param,operator=None,base=None):
+        
+        if operator == 'return': 
+            self.codes.append(operator)
+            return
+        
+        # Check for an operator override
+        if operator: op = operator
+        else: op = self.currOperator
+        try: op = self.GetMethod(op)
+        except: pass
+        # Check if there is a base var override
+        if base: b = base
+        else: b = self.basevar
+        try: b = b.GetValue()
+        except: pass
+        
+        try: param = param.GetValue()
+        except: pass
+        self.codes.append("%s %s %s" % (op,b,param))
+    
+    def IncTmp(self):
+        self.tmp = self.tmp + 1;
+        if self.tmp > 12:
+            self.tmp = 0 
+        return "tmp%i" % self.tmp   
+    
     def GetToken(self):
         return self.tokens.pop(0)
+    
+    def GetMethod(self,token):
+        if token.GetValue() in self.methods:
+            return self.methods[token.GetValue()]
+        else:
+            return token.GetValue()
     
     def Find(self,ident):
         if ident is None: return None
@@ -60,7 +95,7 @@ class ThreeCodeGenerator:
             except:
                 return ident['name']
             
-    def Parse(self):
+    def Parse(self,construct=True):
         try:
             token = self.GetToken()
             # Convert the token type to a nice camelcase handler method name
@@ -70,17 +105,15 @@ class ThreeCodeGenerator:
                 function(token)
                 self.Parse()
             except:
-                # import sys
-                # print sys.exc_info()
                 print method
                 pass
         except:
-            return self.ConstructCodes()       
+            if construct:
+                return self.ConstructCodes()       
     
     def HandleAssign(self,token):
-        if self.state == tcstates.IDENT:
-            self.AddAction(token)
-            self.state = tcstates.ASSIGNMENT;
+        self.currOperator = token
+        self.state = tcstates.ASSIGNMENT
             
     def HandleDelimiter(self,token):
         if self.state == tcstates.INIT:
@@ -93,9 +126,10 @@ class ThreeCodeGenerator:
                 # Handle other flow control
                 pass
             else:
-                self.basevar = Token("IDENT","returnvar")
-                self.AddAction(token)
-            self.state = tcstates.RETURN
+                self.state = tcstates.RETURN
+                self.basevar = Token("IDENT","return")
+                self.currOperator = Token("OPERATOR","=")
+            #self.state = tcstates.RETURN
             
     def HandleIdent(self,token):
         if self.state == tcstates.INIT:
@@ -105,8 +139,7 @@ class ThreeCodeGenerator:
         elif self.state in [tcstates.ASSIGNMENT,tcstates.RETURN,tcstates.RETURN2]:
             
             if self.state == tcstates.RETURN:
-                self.AddParam(token)
-                self.AddAction(Token("ASSIGN","="))
+                self.AddCode(token)
                 self.state = tcstates.RETURN2
                 
             if not self.basevar:
@@ -114,17 +147,54 @@ class ThreeCodeGenerator:
                 self.AddParam(token)
             else:
                 self.AddParam(token)
+            try:
+                next = self.GetToken()
+                if next.GetType() == "OPERATOR":
+                    self.HandleOperator(next)
+                # Handle embedded function calls
+                elif next.GetType() == "DELIMITER" and next.GetValue() == "(":
+                    target = self.CallFunction(token.GetValue())
+                    if not self.currOperator is None:
+                        self.AddCode(target)
+                        self.currOperator = None
+                else:
+                    # Push back to be handled by the parser
+                    self.tokens.push(next)
+            except:
+                pass
+        
+    def CallFunction(self,fn):
+        param = 1
+        while True:
+            try:
+                token = self.GetToken()
+                #print token
+                if token.GetType() == "DELIMITER":
+                    # end of the loop
+                    if token.GetValue() == ")": break
+                    # Ignore commas
+                    elif token.GetValue() == ",": continue
+                self.codes.append("assign %s_p%i %s" % (fn,param,token.GetValue()))
+                param = param + 1
+            except:
+                break
+        target = self.IncTmp()
+        self.codes.append("assign %s_return %s" % (fn,target))
+        self.codes.append("call %s" % fn)
+        return target
+        
+        
             
     def HandleNumeric(self,token):
         if self.state in [tcstates.RETURN,tcstates.RETURN2,tcstates.ASSIGNMENT]:
-            self.AddParam(token)
+            self.codes.append("%s %s %s" % (self.GetMethod(self.currOperator),self.basevar.GetValue(),token.GetValue()))
+            self.currOperator = None
     
     def HandleOperator(self,token):
-        if self.state == tcstates.ASSIGNMENT:
-            self.AddAction(token)
-        elif self.state in [tcstates.RETURN,tcstates.RETURN2]:
-            self.AddAction(token)
-            self.reversed = True
+        self.currOperator = token
+        
+    def HandleOpMinus(self,token):
+        self.currOperator = token
     
     def HandleSystemIo(self,token):
         if self.state == tcstates.ASSIGN:
@@ -136,32 +206,10 @@ class ThreeCodeGenerator:
             
             
     def ConstructCodes(self):
-        codes = []
-        mod = -1
-        if self.reversed: mod = 0
-        
-        while True:
-            try:
-                action = self.actions.pop(mod)
-                try:
-                    action = self.methods[action.GetValue()]
-                except:
-                    action = action.GetValue()
-                
-                param = self.params.pop(mod).GetValue()
-
-                if not self.basevar:
-                    if not param: codes.append("%s" % (action))
-                    else: codes.append("%s %s" % (action,param))
-                else:
-                    if not param or action in ['return',]:
-                        codes.append("%s %s" % (action,self.basevar.GetValue()))
-                    else:
-                        codes.append("%s %s %s" % (action,self.basevar.GetValue(),param))
-            except:
-                break
-        for line in codes:
-            print line
+        if self.state == tcstates.RETURN2:
+            self.AddCode(None,"return",None)
+        for code in self.codes:
+            print code
             
             
             

@@ -27,6 +27,8 @@ class IntermediateGenerator:
     executionState = PROGRAM_STATE
     lastToken = None
     
+    lineContext = []
+    
     symboltable = None
     translator = None
     
@@ -78,7 +80,7 @@ class IntermediateGenerator:
         
         if token == self.lastToken: return
         self.lastToken = token
-        
+                
         # Terminate flow control
         if value == "}":
             try:
@@ -107,6 +109,7 @@ class IntermediateGenerator:
         self.symboltable.Print()
         for line in self.listing:
             context = line['name']
+            print "\nMethod: %s\n============" % context
             for tkset in line['listing']:
                 generator = ThreeCodeGenerator(self.symboltable,tkset,context)
                 output = generator.Parse()
