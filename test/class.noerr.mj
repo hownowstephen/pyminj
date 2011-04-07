@@ -7,6 +7,7 @@ class Average
 	    int n;
 	    int ave;
 	    int m;
+	    int x;
 	    n=System.in.int();
 	    if (n > 0)
 	    {
@@ -14,8 +15,9 @@ class Average
 	        ave =(total/ n);
 	        System.out('a','=',ave);
 	    }
-	    else System.out('e','r','r','o','r');
+	    else 
 	    {
+	    	System.out('e','r','r','o','r');
 	        int x = sum_int(m); # read and sum up m integers
 	    }
 	    int i=1;

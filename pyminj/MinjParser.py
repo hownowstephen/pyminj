@@ -4,7 +4,7 @@ Created on Apr 3, 2011
 @author: stephen
 '''
 from Parser import Parser
-import re
+import re,sys
 from Errors import SyntaxException
 
 class MinjParser(Parser):
@@ -30,7 +30,8 @@ class MinjParser(Parser):
         # If we don't have any accessible states, exit
         if not self.state: 
             self.parsedToken = False
-            print "No more available states"
+            print "Fatal: syntax error could not be recovered"
+            sys.exit()
             return
         
         # Load the next state
