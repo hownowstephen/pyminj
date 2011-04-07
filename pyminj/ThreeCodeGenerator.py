@@ -1,5 +1,5 @@
-
 import string
+from Token import Token
 
 class RuntimeEnum:
     ''' 
@@ -37,7 +37,13 @@ class ThreeCodeGenerator:
         self.actions = []
         self.params = []
         
+        self.contexts = []
         #print "Handling",tokenset
+        
+    def AddParam(self,token):
+        self.params.append(token)
+    def AddAction(self,token):
+        self.actions.append(token)
         
     def GetToken(self):
         return self.tokens.pop(0)
@@ -73,7 +79,7 @@ class ThreeCodeGenerator:
     
     def HandleAssign(self,token):
         if self.state == tcstates.IDENT:
-            self.actions.append(token)
+            self.AddAction(token)
             self.state = tcstates.ASSIGNMENT;
             
     def HandleDelimiter(self,token):
@@ -87,29 +93,37 @@ class ThreeCodeGenerator:
                 # Handle other flow control
                 pass
             else:
-                self.actions.append(value)
+                self.basevar = Token("IDENT","returnvar")
+                self.AddAction(token)
             self.state = tcstates.RETURN
             
     def HandleIdent(self,token):
         if self.state == tcstates.INIT:
             self.basevar = token
             self.state = tcstates.IDENT
-        elif self.state == tcstates.ASSIGNMENT or self.state == tcstates.RETURN:
+        # Check for assignment state or return state
+        elif self.state in [tcstates.ASSIGNMENT,tcstates.RETURN,tcstates.RETURN2]:
+            
+            if self.state == tcstates.RETURN:
+                self.AddParam(token)
+                self.AddAction(Token("ASSIGN","="))
+                self.state = tcstates.RETURN2
+                
             if not self.basevar:
                 self.basevar = token
-                self.params.append(token)
+                self.AddParam(token)
             else:
-                self.params.append(token)
+                self.AddParam(token)
             
     def HandleNumeric(self,token):
-        if self.state == tcstates.RETURN or self.state == tcstates.ASSIGNMENT:
-            self.params.append(token)
+        if self.state in [tcstates.RETURN,tcstates.RETURN2,tcstates.ASSIGNMENT]:
+            self.AddParam(token)
     
     def HandleOperator(self,token):
         if self.state == tcstates.ASSIGNMENT:
-            self.actions.append(token)
-        elif self.state == tcstates.RETURN:
-            self.actions.append(token)
+            self.AddAction(token)
+        elif self.state in [tcstates.RETURN,tcstates.RETURN2]:
+            self.AddAction(token)
             self.reversed = True
     
     def HandleSystemIo(self,token):
@@ -123,27 +137,24 @@ class ThreeCodeGenerator:
             
     def ConstructCodes(self):
         codes = []
+        mod = -1
+        if self.reversed: mod = 0
+        
         while True:
             try:
-                if not self.reversed:
-                    action = self.actions.pop(0)
-                else:
-                    action = self.actions.pop()
+                action = self.actions.pop(mod)
                 try:
-                    if action.GetValue() in self.methods.keys():
-                        action = self.methods[action.GetValue()]
+                    action = self.methods[action.GetValue()]
                 except:
-                    pass
-                if not self.reversed:
-                    param = self.params.pop(0).GetValue()
-                else:
-                    param = self.params.pop().GetValue()
-                    
+                    action = action.GetValue()
+                
+                param = self.params.pop(mod).GetValue()
+
                 if not self.basevar:
                     if not param: codes.append("%s" % (action))
                     else: codes.append("%s %s" % (action,param))
                 else:
-                    if not param:
+                    if not param or action in ['return',]:
                         codes.append("%s %s" % (action,self.basevar.GetValue()))
                     else:
                         codes.append("%s %s %s" % (action,self.basevar.GetValue(),param))
