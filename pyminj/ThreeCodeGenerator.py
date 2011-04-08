@@ -23,6 +23,7 @@ tcmodes = RuntimeEnum()
 
 TEMPVAR = 0
 NESTLEVEL = 0
+whileLoops = {}
 
 class ThreeCodeGenerator:
     ''' Performs the translation of code blocks into three code intermediate expressions'''
@@ -44,7 +45,7 @@ class ThreeCodeGenerator:
         self.codes = []
         self.currOperator = None
         
-    def AddCode(self,param,operator=None,base=None):
+    def AddCode(self,param,operator=None,base=None,staging=False):
         '''Generates a three-code of the form <operator> <base> <param>'''
         if operator == 'return': 
             self.codes.append(operator)
@@ -65,8 +66,12 @@ class ThreeCodeGenerator:
         except: pass
         
         if param is None: param = ""
-        
-        self.codes.append("%s %s %s" % (op,b,param))
+        # If we're not saving these for later
+        code = "%s %s %s" % (op,b,param)
+        if not staging and op:
+            self.codes.append(code)
+        else:
+            return code
     
     def IncTmp(self):
         '''Increment our looping counter for the temp variables'''
@@ -101,9 +106,10 @@ class ThreeCodeGenerator:
                 function(token)
                 self.Parse()
             except:
-                print sys.exc_info()
+                #print sys.exc_info()
                 pass
         except:
+            #print sys.exc_info()
             # No more tokens exist - unless instructed not to, we can output the 
             # intermediate code
             if construct: return self.ConstructCodes()       
@@ -152,12 +158,17 @@ class ThreeCodeGenerator:
                 elif value == "while": 
                     self.state = tcstates.WHILE
                     NESTLEVEL += 1
+                    self.AddCode(None,"label","while%i" % NESTLEVEL)
                 elif value == "endif":
                     pass
                 elif value == "endelse":
                     self.AddCode(None,"label","endif%i" % NESTLEVEL)
                     NESTLEVEL -= 1
                 elif value == "endwhile":
+                    global whileLoops
+                    target = "while%i" % NESTLEVEL
+                    for code in whileLoops[target]:
+                        self.codes.append(code)
                     NESTLEVEL -= 1
                 elif value == "else":
                     self.state = tcstates.ELSE
@@ -179,7 +190,7 @@ class ThreeCodeGenerator:
             self.state = tcstates.IDENT
             
         # Check for assignment state or return state
-        elif self.state in [tcstates.ASSIGNMENT,tcstates.RETURN,tcstates.RETURN2,tcstates.IF]:
+        elif self.state in [tcstates.ASSIGNMENT,tcstates.RETURN,tcstates.RETURN2,tcstates.IF,tcstates.WHILE]:
             
             # Check if we are just starting the return
             if self.state == tcstates.RETURN:
@@ -190,6 +201,9 @@ class ThreeCodeGenerator:
             if self.state == tcstates.IF:
                 if self.basevar:
                     self.GenerateCondition(token)    
+            elif self.state == tcstates.WHILE:
+                if self.basevar:
+                    self.GenerateWhile(token)
             
             # Check if we need to set the basevar
             if not self.basevar:
@@ -208,6 +222,10 @@ class ThreeCodeGenerator:
                         self.AddCode(target)
                         self.currOperator = None
                 else:
+                    if self.state in [tcstates.ASSIGNMENT]:
+                        if self.basevar:
+                            self.AddCode(token)
+                            self.currOperator = None
                     # Push back to be handled by the parser
                     self.tokens.appendleft(next)
             except:
@@ -249,6 +267,9 @@ class ThreeCodeGenerator:
         elif self.state == tcstates.IF:
             if self.basevar: 
                 self.GenerateCondition(token)
+        elif self.state == tcstates.WHILE:
+            if self.basevar:
+                self.GenerateWhile(token)
     
     def GenerateCondition(self,token):
         '''Generator for condition block codes'''
@@ -257,7 +278,18 @@ class ThreeCodeGenerator:
         self.AddCode(self.basevar,Token("ASSIGN","="),tmp)
         self.AddCode(token,self.currOperator,tmp)
         self.AddCode("else%i" % NESTLEVEL,"branch_false",tmp);
-                
+        
+    def GenerateWhile(self,token):
+        '''Generator for condition block codes'''
+        global NESTLEVEL,whileLoops
+        tmp = self.IncTmp()
+        target = "while%i" % NESTLEVEL
+        whileLoops[target] = []
+        whileLoops[target].append(self.AddCode(self.basevar,Token("ASSIGN","="),tmp,True))
+        whileLoops[target].append(self.AddCode(token,self.currOperator,tmp,True))
+        whileLoops[target].append(self.AddCode(target,"branch_true",tmp,True))
+        
+        
     def HandleOperator(self,token):
         '''Handler for operators'''
         self.currOperator = token

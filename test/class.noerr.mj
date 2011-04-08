@@ -12,7 +12,7 @@ class Average
 	    if (n > 0)
 	    {
 	        int total = sum_int(n);
-	        ave =(total/ n);
+	        ave = total + n;
 	        System.out('a','=',ave);
 	    }
 	    else 
