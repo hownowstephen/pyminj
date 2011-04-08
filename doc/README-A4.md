@@ -34,14 +34,41 @@ Intermediate Code Generation
 
 The intermediate code generated follows the following conventions:
 
-	<method> <param1> <param2>
+	<method> <base> <param>
+
+Where method is an intermediate code operation, param1 is what is referred in the source as
+the 'base' identifier (the identifier to which a potential result will be pushed) and what
+is referred to as the parameter, used differently by each operation
+
+Intermediate Code Instructions
+------------------------------
+
+Most of the instructions are fairly explanatory, and work as follows:
+
+eg. add x 1, will add the value '1' to the value at address x
+	add x x, will add the value at address x to the value at at address x
 	
-In this case, scope is represented by a single enumerated value which in turn corresponds to the
-scope of the current method. By default, the program has a scope of 0 and the main method has a scope 
-of 1, and all others have a scope that is assigned based on the order in which they are defined (so the 
-first user function will be scope 2 etc). The values of variables are searched first in the symbol table 
-for the current defined scope and then within the global scope 0.
-	
+label <labelname> Indicates a logical label whose address needs to be stored in the next pass
+
+branch_true <var> <label> If the var resolves to true (1) branch to the address of <label>
+
+branch_false <var> <label> Same as previous, but branches if the var is false (0)
+
+return Returns the value of the runtime var 'return' to the return target, which will be defined
+	   when the next pass is made that generates the frame header for the target code
+	   
+lt,gt,lte,gte,eq,neq These perform a check for whether or not <base> is <op> than <param>
+					 so for lt x 10, if x is less than 10, x will be set to 1, otherwise
+					 x is set to 0. In the generated code this is performed using temp
+					 variables to ensure the stability of defined variables
+					 
+tmp# is a reference to a temporary variable, which is allocated round-robin. 12 slots are
+	 currently allowed for these, pending a final decision in the target code generation
+	 phase
+	 
+goto <label> Sends the execution cursor to the label
+
+method <name> <start|end> Indicates the start and end of a method
 
 Implementation
 --------------

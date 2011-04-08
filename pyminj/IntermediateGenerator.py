@@ -16,6 +16,7 @@ PROGRAM_STATE = "program"
 
 
 class IntermediateGenerator:
+    '''Generates a pre-intermediate code dataset from the parsed code'''
     
     options = None
     listing = []
@@ -33,6 +34,7 @@ class IntermediateGenerator:
     translator = None
     
     def __init__(self,symboltable):
+        '''Set our symbol table'''
         self.symboltable = symboltable
                 
     def HandleFunction(self,token,state):
@@ -75,6 +77,10 @@ class IntermediateGenerator:
             pass
             
     def HandleStatement(self,token,state):
+        '''
+        Handler for individual statements, helps break up statements and functions
+        logically for the threecode generator
+        '''
         type = token.GetType()
         value = token.GetValue()
         
@@ -106,12 +112,19 @@ class IntermediateGenerator:
             self.lastToken = None        
     
     def PrintListing(self):
-        self.symboltable.Print()
+        '''
+        PrintListing
+        writes to file the generated listing of intermediate code
+        note: Frame headers are not being written at this stage, as they will be written
+              directly into the target code, to allow us another pass of the code to
+              write into the headers the variable locations etc.
+        '''
         for line in self.listing:
             context = line['name']
-            print "\nMethod: %s\n============" % context
+            print "\nmethod %s start" % context
             for tkset in line['listing']:
                 generator = ThreeCodeGenerator(self.symboltable,tkset,context)
-                output = generator.Parse()
+                generator.Parse()
+            print "method %s end" % context
 
             
