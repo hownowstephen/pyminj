@@ -5,11 +5,15 @@ class DoSomething {
 	void main(){ 
 		i = 0;
 		while(i<10){
-			x[i] = System.in.int();
+			if(i != 5){
+				x[i] = System.in.int();
+			}else{
+				i = i;
+			}
 			i = i + 1;
 		}
-		y = x[i] + x[1];
-		return i;
+		y = x[i] + 5;
+		return x[4] + 10;
 	}
 	
 	int inc(int var){

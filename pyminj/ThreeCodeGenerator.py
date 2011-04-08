@@ -30,13 +30,14 @@ class ThreeCodeGenerator:
     methods = {"+": "add", "-": "sub", "*": "mul", "/": "div", "%": "mod", 
                "&&": "and", "||": "or", "=": "assign","<": "lt", ">": "gt", 
                "<=": "lte", ">=": "gte", "!=": "ne", "==": "eq"}
-    def __init__(self,symboltable,tokenset,context):
+    def __init__(self,symboltable,tokenset,context,file):
         ''' Initialize data needed'''
         self.symbols = symboltable
         self.tokens = deque(tokenset)
         self.output = []
         self.state = tcstates.INIT;
         self.reversed = False
+        self.outputfile = file
         
         self.basevar = None
         self.actions = []
@@ -46,6 +47,7 @@ class ThreeCodeGenerator:
         self.currOperator = None
         self.subscripting = False
         self.lastvar = None
+        self.stash = []
         
     def AddCode(self,param,operator=None,base=None,staging=False):
         '''Generates a three-code of the form <operator> <base> <param>'''
@@ -146,11 +148,11 @@ class ThreeCodeGenerator:
         '''Handler for delimiters'''
         if self.state == tcstates.INIT:
             pass
-        ''' elif self.state == tcstates.ASSIGNMENT and token.GetValue() == "[":
-            self.subscripting = True
-            subscript = self.GetToken()
-            tmp = self.IncTmp()
-            self.AddCode(self.lastvar,"pointer",tmp)'''
+        # elif self.state == tcstates.ASSIGNMENT and token.GetValue() == "[":
+        #    self.subscripting = True
+        #    subscript = self.GetToken()
+        #     tmp = self.IncTmp()
+        #     self.AddCode(self.lastvar,"pointer",tmp)
             
     def HandleFlowControl(self,token):
         '''Handler for flow control tokens (conditions, returns etc)'''
@@ -191,6 +193,17 @@ class ThreeCodeGenerator:
         raise Exception        
     
     def HandleIdent(self,token):
+        '''Check if we should be converting to a subscript'''
+        next = self.GetToken()
+        if next.GetValue() == '[':
+            ss = self.GetToken()
+            tmp = self.IncTmp()
+            self.AddCode(token,"pointer",tmp)
+            self.AddCode(ss,"advance",tmp)
+            token = tmp
+        else:
+            self.tokens.appendleft(next)
+        
         
         self.lastvar = token
         '''Handler for identifiers'''
@@ -198,11 +211,6 @@ class ThreeCodeGenerator:
             self.basevar = token
             self.state = tcstates.IDENT
             
-        elif self.state == tcstates.IDENT:
-            tmp = self.IncTmp()
-            self.AddCode(self.basevar,"pointer",tmp)
-            self.AddCode(token,"advance",tmp)
-            self.basevar = tmp
             
         # Check for assignment state or return state
         elif self.state in [tcstates.ASSIGNMENT,tcstates.RETURN,tcstates.RETURN2,tcstates.IF,tcstates.WHILE]:
@@ -331,7 +339,7 @@ class ThreeCodeGenerator:
         if self.state == tcstates.RETURN2:
             self.AddCode(None,"return",None)
         for code in self.codes:
-            print code
+            self.outputfile.write("%s\n"% code)
             
             
             

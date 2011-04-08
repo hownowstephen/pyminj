@@ -3,7 +3,7 @@ import sys
 import os.path as filepath
 from pyminj import *
 
-Version = '0.7.0-dev'
+Version = '0.8.1'
 Author = 'Stephen Young (st_youn@encs.concordia.ca)'
 
 try:

@@ -9,7 +9,7 @@ from Errors import SyntaxException
 
 class MinjParser(Parser):
     
-    Version = "1.2.1"
+    Version = "1.3.1"
     Author = "st_youn"
     
     execState = None

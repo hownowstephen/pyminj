@@ -40,6 +40,12 @@ Where method is an intermediate code operation, param1 is what is referred in th
 the 'base' identifier (the identifier to which a potential result will be pushed) and what
 is referred to as the parameter, used differently by each operation
 
+Generated intermediate code is inserted into /output/intermediate.tmp. Note this file will
+only contain the intermediate code for the last compiled file, so the code for the files in
+the auto-tester will only end up yielding the last file (class.min.mj).
+
+Cached output for the auto-tester can be found in /output/cache/
+
 Intermediate Code Instructions
 ------------------------------
 
