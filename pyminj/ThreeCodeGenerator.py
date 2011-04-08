@@ -44,6 +44,8 @@ class ThreeCodeGenerator:
         
         self.codes = []
         self.currOperator = None
+        self.subscripting = False
+        self.lastvar = None
         
     def AddCode(self,param,operator=None,base=None,staging=False):
         '''Generates a three-code of the form <operator> <base> <param>'''
@@ -144,6 +146,11 @@ class ThreeCodeGenerator:
         '''Handler for delimiters'''
         if self.state == tcstates.INIT:
             pass
+        ''' elif self.state == tcstates.ASSIGNMENT and token.GetValue() == "[":
+            self.subscripting = True
+            subscript = self.GetToken()
+            tmp = self.IncTmp()
+            self.AddCode(self.lastvar,"pointer",tmp)'''
             
     def HandleFlowControl(self,token):
         '''Handler for flow control tokens (conditions, returns etc)'''
@@ -184,10 +191,18 @@ class ThreeCodeGenerator:
         raise Exception        
     
     def HandleIdent(self,token):
+        
+        self.lastvar = token
         '''Handler for identifiers'''
         if self.state == tcstates.INIT:
             self.basevar = token
             self.state = tcstates.IDENT
+            
+        elif self.state == tcstates.IDENT:
+            tmp = self.IncTmp()
+            self.AddCode(self.basevar,"pointer",tmp)
+            self.AddCode(token,"advance",tmp)
+            self.basevar = tmp
             
         # Check for assignment state or return state
         elif self.state in [tcstates.ASSIGNMENT,tcstates.RETURN,tcstates.RETURN2,tcstates.IF,tcstates.WHILE]:
@@ -270,6 +285,11 @@ class ThreeCodeGenerator:
         elif self.state == tcstates.WHILE:
             if self.basevar:
                 self.GenerateWhile(token)
+        elif self.state == tcstates.IDENT:
+            tmp = self.IncTmp()
+            self.AddCode(self.basevar,"pointer",tmp)
+            self.AddCode(token,"advance",tmp)
+            self.basevar = tmp
     
     def GenerateCondition(self,token):
         '''Generator for condition block codes'''

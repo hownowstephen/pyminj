@@ -1,13 +1,15 @@
 class DoSomething { 
 	
 	int [] x = new int[10];
-	int i;
+	int i; int y;
 	void main(){ 
 		i = 0;
 		while(i<10){
 			x[i] = System.in.int();
+			i = i + 1;
 		}
-		return x;
+		y = x[i] + x[1];
+		return i;
 	}
 	
 	int inc(int var){

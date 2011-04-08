@@ -121,10 +121,10 @@ class IntermediateGenerator:
         '''
         for line in self.listing:
             context = line['name']
-            print "\nmethod %s start" % context
+            print "method %s start" % context
             for tkset in line['listing']:
                 generator = ThreeCodeGenerator(self.symboltable,tkset,context)
                 generator.Parse()
-            print "method %s end" % context
+            print "method %s end\n" % context
 
             

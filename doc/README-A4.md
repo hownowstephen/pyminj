@@ -70,6 +70,8 @@ goto <label> Sends the execution cursor to the label
 
 method <name> <start|end> Indicates the start and end of a method
 
+pointer <var1> <var2> Creates a pointer to var2 at var1 (inserts address of var1 into var2)
+advance <var1> <amount> Moves the pointer by <amount> addresses
 Implementation
 --------------
 
