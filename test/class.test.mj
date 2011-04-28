@@ -10,7 +10,11 @@ class TestClass {
 	}
 	
 	int inc(int value){
-		value = value * 1000;
+		if(value == 2){
+			value = value * -1020; 
+		}else{
+			value = value * 1000;
+		}
 		return value;
 	}
 }

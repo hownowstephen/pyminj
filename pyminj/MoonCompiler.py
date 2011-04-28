@@ -175,8 +175,40 @@ class MoonCompiler:
                 # Store it in the value of the assignee
                 self.CurrMethod.AddOp("s%s" % type,["%s(r0)" % base,reg])
     
-    def HandleBfalse(self,base,param):
-        pass
+    def HandleBeq(self,base,param):
+        self.HandleBranch(base,param,'eq')
+    
+    def HandleBgt(self,base,param):
+        self.HandleBranch(base,param,'gt')
+        
+    def HandleBgte(self,base,param):
+        self.HandleBranch(base,param,'ge')
+
+    def HandleBlt(self,base,param):
+        self.HandleBranch(base,param,'lt')
+        
+    def HandleBlte(self,base,param):
+        self.HandleBranch(base,param,'le')
+        
+    def HandleBne(self,base,param):
+        self.HandleBranch(base,param,'ne')
+    
+    def HandleBranch(self,base,param,brtype,zero=True):
+        '''Acts as a wrapper for the template used to generated conditional branching commands'''
+        reg = self.GetReg()
+        # Pull out the encoded destination from the intermediate code
+        # @todo Fix this encoding
+        src,jump = base.split('~')
+        type,var = self.GetType(src)
+        # Load the test value into a register
+        self.CurrMethod.AddOp("lw",[reg,"%s(r0)" % var])
+        # Perform test
+        self.CurrMethod.AddOp("c%si" % brtype,[reg,reg,param])
+        # Branch accordingly
+        if zero:
+            self.CurrMethod.AddOp("bz",[reg,jump])
+        else:
+            self.CurrMethod.AddOp("bnz",[reg,jump])
     
     def HandleBtrue(self,base,param):
         pass
@@ -186,6 +218,12 @@ class MoonCompiler:
     
     def HandleGt(self,base,param):
         pass
+    
+    def HandleGoto(self,base,param):
+        self.CurrMethod.AddOp('j',[base])
+    
+    def HandleLabel(self,base,param):
+        self.CurrMethod.LabelNext = base
     
     def HandleLte(self,base,param):
         pass

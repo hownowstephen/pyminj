@@ -306,9 +306,9 @@ class ThreeCodeGenerator:
         '''Generator for condition block codes'''
         global NESTLEVEL
         tmp = self.IncTmp()
-        self.AddCode(self.basevar,Token("ASSIGN","="),tmp)
-        self.AddCode(token,self.currOperator,tmp)
-        self.AddCode("else%i" % NESTLEVEL,"bfalse",tmp);
+        #self.AddCode(self.basevar,Token("ASSIGN","="),tmp)
+        self.AddCode(token,"b%s" % self.GetMethod(self.currOperator),"%s~else%s" % (self.basevar.GetValue(),NESTLEVEL))
+        #self.AddCode("else%i" % NESTLEVEL,"bfalse",tmp);
         
     def GenerateWhile(self,token):
         '''Generator for condition block codes'''
