@@ -1,8 +1,7 @@
 '''
 Compiler for translating PyMinJ intermediate code to the Moon virtual machine architecture
 '''
-import os,re
-from copy import deepcopy
+import os,re,sys
 
 class MoonCompiler:
     '''
@@ -27,19 +26,24 @@ class MoonCompiler:
     
     # Pre-emptive incrementation means we should start at zero
     Tmp = -1;
-    Register = 5
+    Register = 4
     
     def __init__(self,out,symboltable):
         '''Load the current set of intermediate data and parse out the lines to be converted to Moon commands'''
         file = open(self.__filepath__,'r')
         lines = file.readlines()
         for line in lines:
+            # Ignore commented code
             if not line.startswith("#"):
                 code = line.strip().split(' ')
+                # Ignore invalid code / empty lines
                 if len(code) > 3 or code[0] == '': continue
                 self.codes.append(code)
+        # Configure what file we will write to
         self.__outfile__ = out;
+        # Configure the symboltable
         self.__symboltable = symboltable
+        # Empty out the currmethod
         self.CurrMethod = None
     
     def Compile(self):
@@ -48,6 +52,7 @@ class MoonCompiler:
         
         self.__global = MoonMethod('global',{},self.__position)
         
+        # Handle all the initial global elements that need to be defined
         for key,element in self.__symboltable['global'].iteritems():
             if element['type'] == 'identifier':
                 if element['datatype'] == 'int':
@@ -55,25 +60,30 @@ class MoonCompiler:
                 else:
                     self.__global.AddOp("res",[8],key)
         
+        # Iterate over all the code
         for line in self.codes:
             command = line[0]
             try:    base = line[1]
             except: base = ''
             try:    param = line[2]
             except: param = ''
+            # Generate the variable method to call
             method = "Handle%s" % command.capitalize()
             #if self.CurrMethod: self.CurrMethod.AddOp("ORIG: %s %s %s" % (command,base,param))
             if hasattr(self,method):
                 _method = getattr(self,method)
                 _method(base,param)
             else:
+                # Failsafe for unknown operations
                 print "No handler configured for %s" % command
     
     def GetReg(self):
         '''Retrieve the next available volatile register (round robin to allow for maximized access)'''
+        # Increment the current register
         self.Register += 1
-        if self.Register > 15:
-            self.Register = 6
+        # Cap at 16 registers (limit in the moon VM)
+        if self.Register > 14:
+            self.Register = 5
         return "r%i" % self.Register
     
     def GetTmp(self):
@@ -82,8 +92,12 @@ class MoonCompiler:
         return "t%i" % self.Tmp;
     
     def GetType(self,var):
+        '''Determines the type of a variable and provides the size (b)yte or (w)ord, as well as any mutations to the var'''
+        datatype = False
+        # Work out what is meant by 'return'
         if var == "return":
             datatype =  self.__symboltable['global'][self.CurrMethod.Name]['datatype']
+            var = "%s_rt" % (self.CurrMethod.Name)
         else:
             try:
                 datatype = self.__symboltable[self.CurrMethod.Name][var]['datatype']
@@ -94,21 +108,45 @@ class MoonCompiler:
                 # Try a param
                 except:
                     pc = 0
-                    for param in self.__symboltable['global'][self.CurrMethod.Name]['params']:
-                        if param['name'] == var:
-                            datatype = param['datatype']
-                            var = "%s_p%i" % (self.CurrMethod.Name,pc)
-                            break
-                        pc += 1
+                    try:
+                        for param in self.__symboltable['global'][self.CurrMethod.Name]['params']:
+                            if param['name'] == var:
+                                datatype = param['datatype']
+                                var = "%s_p%i" % (self.CurrMethod.Name,pc)
+                                break
+                            pc += 1
+                    # Some special cases (mutated and temporary variables)
+                    except:
+                        pmatch = re.match("(?P<method>[\w\$_]+)_p(?P<param>\d+)",var)
+                        rmatch = re.match("(?P<method>[\w\$_]+)_rt",var)
+                        if pmatch:
+                            # Pull out the method and param number 
+                            method = pmatch.group("method")
+                            pnum = int(pmatch.group("param"))
+                            datatype = self.__symboltable['global'][method]['params'][pnum]['datatype']
+                        elif rmatch:
+                            # Pull out the return value details
+                            method = rmatch.group("method")
+                            datatype = self.__symboltable['global'][method]['datatype']
+        # Finally work out whether we are working with a byte or a word, and return the updated details
         if datatype == "int":
             return "w",var
         elif datatype == "char":
             return "b",var
         else:
-            return False
+            return False,var
             
     def HandleAdd(self,base,param):
-        pass
+        '''Handler for the add operation'''
+        reg = self.GetReg()
+        type,base = self.GetType(base)
+        self.CurrMethod.AddOp("l%s" % type,[reg,"%s(r0)" % base])
+        # If we are adding a direct param to the var, use addi
+        if self.Immediate(param): op = "addi"
+        else: op = "add"
+        self.CurrMethod.AddOp(op,[reg,reg,param])
+        self.CurrMethod.AddOp("s%s" % type,["%s(r0)" % base,reg])
+            
     
     def HandleAdvance(self,base,param):
         pass
@@ -124,15 +162,21 @@ class MoonCompiler:
                 self.CurrMethod.AddOp("s%s" % type,["%s(r0)" % base,reg])
             else:
                 type,param = self.GetType(param)
+                btype,base = self.GetType(base)
                 reg = self.GetReg()
+                # Load the value of the assignment variable
                 self.CurrMethod.AddOp("l%s" % type,[reg,"%s(r0)" % param])
-                self.CurrMethod.AddOp("s%s" % type,["%s_rt(r0)" % self.CurrMethod.Name,reg])
+                # Store it in the value of the assignee
+                self.CurrMethod.AddOp("s%s" % type,["%s(r0)" % base,reg])
     
     def HandleBfalse(self,base,param):
         pass
     
     def HandleBtrue(self,base,param):
         pass
+    
+    def HandleCall(self,base,param):
+        self.CurrMethod.AddOp("jl",['r15',base])
     
     def HandleGt(self,base,param):
         pass
@@ -179,6 +223,7 @@ class MoonCompiler:
         return False
     
     def LoadLiteral(self,type,param,base):
+        '''Wrapper for the functionality of loading raw data (a char or int) into a variable'''
         var = self.GetTmp()
         vol = self.GetReg() # Retrieve a volatile register to use
         self.__global.AddOp("d%s" % type,[param.replace("'",'"'),13,10,0],var)
@@ -186,19 +231,25 @@ class MoonCompiler:
         return vol
     
     def OpenMethod(self,methodname):
-        '''Open up the method'''
+        '''Open up a method block'''
+        # PUll the method signature out of the global symbol definition
         signature = self.__symboltable['global'][methodname]
         frametop = self.__position
+        # Generate a new CurrentMethod container
         self.CurrMethod = MoonMethod(methodname,signature,frametop)
         self.CurrMethod.LabelNext = methodname
+        # Perform some preliminary insertions
         if methodname == 'main':
             self.CurrMethod.AddOp("align")
             self.CurrMethod.AddOp("entry")
         else:
+            # To ensure that we don't clash with any other name inputs, add in a nop
             self.CurrMethod.AddOp("nop")
         
     def CloseMethod(self):
+        '''Terminates the current method block'''
         if self.CurrMethod.Name == 'main': self.CurrMethod.AddOp("hlt")
+        else: self.CurrMethod.AddOp("jr",['r15'])
         self.__frames.append(self.CurrMethod)
         self.CurrMethod = None
     
@@ -241,7 +292,9 @@ class MoonMethod:
         pc = 0
         try:
             header = MoonMethod(None,[],None)
+            # Allocate space for the return value
             header.AddOp('res',[self.GetSize(self.__signature['datatype'])],'%s_rt' % self.Name)
+            # Loop through and add in the required allocation blocks for the signature vars
             for param in self.__signature['params']:
                 if param['datatype'] == 'int':
                     header.AddOp('res',[32],'%s_p%i' % (self.Name,pc))

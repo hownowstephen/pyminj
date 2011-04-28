@@ -1,10 +1,10 @@
 class TestClass {
 
 	int x;
-	char y;
 
 	void main(){
-		y = 'x';
+		x = 0;
+		x = inc(x);
 		System.out('x','=',x);
 		return x;
 	}

@@ -259,7 +259,7 @@ class ThreeCodeGenerator:
         
     def CallFunction(self,fn):
         '''Generates the codes necessary to call a given user-defined function'''
-        param = 1
+        param = 0
         while True:
             try:
                 token = self.GetToken()
@@ -272,9 +272,9 @@ class ThreeCodeGenerator:
                 param = param + 1
             except:
                 break
-        # Get a new temporary variable to store results in
-        target = self.IncTmp()
-        self.codes.append("assign %s_return %s" % (fn,target))
+        #
+        target = "%s_rt" % fn
+        #self.codes.append("assign %s %s_rt" % (target,fn))
         self.codes.append("call %s" % fn)
         return target
         
