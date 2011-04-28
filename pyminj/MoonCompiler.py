@@ -159,8 +159,13 @@ class MoonCompiler:
     
     def HandleAssign(self,base,param):
         '''Handle assignment method'''
+        rmatch = re.match("tmp(?P<id>\d+)",base)
         if param == "system.in":
             self.CurrMethod.AddOp("getc",[base])
+        elif rmatch:
+            reg = "r%s" % rmatch.group('id')
+            type,param = self.GetType(param)
+            self.CurrMethod.AddOp("l%s" % type,[reg,"%s(r0)" % param])
         else:
             type = self.Immediate(param)
             if type:
@@ -175,58 +180,62 @@ class MoonCompiler:
                 # Store it in the value of the assignee
                 self.CurrMethod.AddOp("s%s" % type,["%s(r0)" % base,reg])
     
-    def HandleBeq(self,base,param):
-        self.HandleBranch(base,param,'eq')
+    # These are thinly wrapped usages of the HandleBranch method
+    # Which can be found underneath
     
-    def HandleBgt(self,base,param):
-        self.HandleBranch(base,param,'gt')
+    def HandleEq(self,base,param):
+        ''' Handle '==' '''
+        self.HandleCond(base,param,'eq')
+    
+    def HandleGt(self,base,param):
+        ''' Handle '>' '''
+        self.HandleCond(base,param,'gt')
         
-    def HandleBgte(self,base,param):
-        self.HandleBranch(base,param,'ge')
+    def HandleGte(self,base,param):
+        ''' Handle '>=' '''
+        self.HandleCond(base,param,'ge')
 
-    def HandleBlt(self,base,param):
-        self.HandleBranch(base,param,'lt')
+    def HandleLt(self,base,param):
+        ''' Handle '<' '''
+        self.HandleCond(base,param,'lt')
         
-    def HandleBlte(self,base,param):
-        self.HandleBranch(base,param,'le')
+    def HandleLte(self,base,param):
+        ''' Handle '<=' '''
+        self.HandleCond(base,param,'le')
         
-    def HandleBne(self,base,param):
-        self.HandleBranch(base,param,'ne')
+    def HandleNe(self,base,param):
+        ''' Handle '!=' '''
+        self.HandleCond(base,param,'ne')
     
-    def HandleBranch(self,base,param,brtype,zero=True):
+    def HandleCond(self,base,param,brtype,zero=True):
         '''Acts as a wrapper for the template used to generated conditional branching commands'''
-        reg = self.GetReg()
-        # Pull out the encoded destination from the intermediate code
-        # @todo Fix this encoding
-        src,jump = base.split('~')
-        type,var = self.GetType(src)
-        # Load the test value into a register
-        self.CurrMethod.AddOp("lw",[reg,"%s(r0)" % var])
-        # Perform test
-        self.CurrMethod.AddOp("c%si" % brtype,[reg,reg,param])
-        # Branch accordingly
-        if zero:
-            self.CurrMethod.AddOp("bz",[reg,jump])
-        else:
-            self.CurrMethod.AddOp("bnz",[reg,jump])
-    
+        rmatch = re.match("tmp(?P<id>\d+)",base)
+        if rmatch:
+            reg = "r%s" % rmatch.group('id')
+            type,param = self.GetType(param)
+            # Perform test
+            self.CurrMethod.AddOp("c%si" % brtype,[reg,reg,param])
+            
+    def HandleBfalse(self,base,param):
+        rmatch = re.match("tmp(?P<id>\d+)",base)
+        if rmatch:
+            reg = "r%s" % rmatch.group('id')
+            self.CurrMethod.AddOp("bnz",[reg,param])
+            
     def HandleBtrue(self,base,param):
-        pass
+        rmatch = re.match("tmp(?P<id>\d+)",base)
+        if rmatch:
+            reg = "r%s" % rmatch.group('id')
+            self.CurrMethod.AddOp("bz",[reg,param])
     
     def HandleCall(self,base,param):
         self.CurrMethod.AddOp("jl",['r15',base])
-    
-    def HandleGt(self,base,param):
-        pass
     
     def HandleGoto(self,base,param):
         self.CurrMethod.AddOp('j',[base])
     
     def HandleLabel(self,base,param):
         self.CurrMethod.LabelNext = base
-    
-    def HandleLte(self,base,param):
-        pass
     
     def HandleMethod(self,base,param):
         if param == "start":
@@ -302,10 +311,12 @@ class MoonCompiler:
         self.CurrMethod = None
     
     def PrintIntermediate(self):
+        '''Debug function, allows printing of all intermediate code'''
         for code in self.codes:
             print code
     
     def WriteMFile(self):
+        '''Performs the writing of the output file'''
         self.__global.Write()
         for method in self.__frames:
             method.Write()
