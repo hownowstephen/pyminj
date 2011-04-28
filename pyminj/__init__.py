@@ -8,4 +8,5 @@ from Syntax import Syntax
 from ListingWriter import ListingWriter
 from SymbolTable import SymbolTable
 from IntermediateGenerator import IntermediateGenerator
+from MoonCompiler import *
 from Errors import *

@@ -92,8 +92,10 @@ class IntermediateGenerator:
                 
         # Terminate flow control
         if value == "}":
+            val = None
             try:
-                self.function['listing'].append([Token("FLOW_CONTROL","end%s" % self.controlStack.pop())])
+                val = self.controlStack.pop()
+                self.function['listing'].append([Token("FLOW_CONTROL","end%s" % val)])
             except:
                 pass
         
@@ -118,9 +120,6 @@ class IntermediateGenerator:
         '''
         PrintListing
         writes to file the generated listing of intermediate code
-        note: Frame headers are not being written at this stage, as they will be written
-              directly into the target code, to allow us another pass of the code to
-              write into the headers the variable locations etc.
         '''
         file = "output/intermediate.tmp"
         intermediate = open(file,'w')

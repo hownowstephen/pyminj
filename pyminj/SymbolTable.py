@@ -193,6 +193,10 @@ class SymbolTable:
             return self.contexts[Context]
         except:
             return False
+        
+    def GetTable(self):
+        '''Retrieves the entire symbol table dict'''
+        return self.contexts
     
     def Print(self):
         '''Debug function, prints the entire symbol table'''

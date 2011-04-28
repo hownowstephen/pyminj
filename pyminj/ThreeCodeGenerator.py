@@ -161,6 +161,7 @@ class ThreeCodeGenerator:
         '''Handler for flow control tokens (conditions, returns etc)'''
         global NESTLEVEL
         value = token.GetValue()
+        
         if self.state == tcstates.INIT:
             if value != "return":
                 # Handle other flow control
@@ -171,17 +172,6 @@ class ThreeCodeGenerator:
                     self.state = tcstates.WHILE
                     NESTLEVEL += 1
                     self.AddCode(None,"label","while%i" % NESTLEVEL)
-                elif value == "endif":
-                    pass
-                elif value == "endelse":
-                    self.AddCode(None,"label","endif%i" % NESTLEVEL)
-                    NESTLEVEL -= 1
-                elif value == "endwhile":
-                    global whileLoops
-                    target = "while%i" % NESTLEVEL
-                    for code in whileLoops[target]:
-                        self.codes.append(code)
-                    NESTLEVEL -= 1
                 elif value == "else":
                     self.state = tcstates.ELSE
                     self.AddCode(None,"goto","endif%i" % NESTLEVEL)
@@ -190,6 +180,17 @@ class ThreeCodeGenerator:
                 self.state = tcstates.RETURN
                 self.basevar = Token("IDENT","return")
                 self.currOperator = Token("OPERATOR","=")
+        if value == "endif":
+            pass
+        elif value == "endelse":
+            self.AddCode(None,"label","endif%i" % NESTLEVEL)
+            NESTLEVEL -= 1
+        if value == "endwhile":
+            global whileLoops
+            target = "while%i" % NESTLEVEL
+            for code in whileLoops[target]:
+                self.codes.append(code)
+            NESTLEVEL -= 1
             #self.state = tcstates.RETURN
     def HandleFunction(self,token):
         '''Handler for function tokens'''
@@ -315,10 +316,12 @@ class ThreeCodeGenerator:
         global NESTLEVEL,whileLoops
         tmp = self.IncTmp()
         target = "while%i" % NESTLEVEL
+        ending = "endwhile%i" % NESTLEVEL
         whileLoops[target] = []
-        whileLoops[target].append(self.AddCode(self.basevar,Token("ASSIGN","="),tmp,True))
-        whileLoops[target].append(self.AddCode(token,self.currOperator,tmp,True))
-        whileLoops[target].append(self.AddCode(target,"btrue",tmp,True))
+        self.AddCode(self.basevar,Token("ASSIGN","="),tmp)
+        self.AddCode(token,self.currOperator,tmp)
+        self.AddCode(ending,"btrue",tmp)
+        whileLoops[target].append(self.AddCode(ending,"goto",target,True))
         
     def HandleOperator(self,token):
         '''Handler for operators'''

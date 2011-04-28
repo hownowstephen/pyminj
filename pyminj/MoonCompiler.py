@@ -41,6 +41,8 @@ class MoonCompiler:
                 self.codes.append(code)
         # Configure what file we will write to
         self.__outfile__ = out;
+        file = open(self.__outfile__,"w")
+        file.close()
         # Configure the symboltable
         self.__symboltable = symboltable
         # Empty out the currmethod
@@ -142,6 +144,12 @@ class MoonCompiler:
     def HandleMul(self,base,param):
         self.HandleMath(base,param,"mul")
     
+    def HandleSub(self,base,param):
+        self.HandleMath(base,param,"sub")
+        
+    def HandleMod(self,base,param):
+        self.HandleMath(base,param,"mod")
+    
     def HandleMath(self,base,param,opbase):
         '''Handler for the add operation'''
         reg = self.GetReg()
@@ -161,7 +169,10 @@ class MoonCompiler:
         '''Handle assignment method'''
         rmatch = re.match("tmp(?P<id>\d+)",base)
         if param == "system.in":
-            self.CurrMethod.AddOp("getc",[base])
+            reg = self.GetReg()
+            type,base = self.GetType(base)
+            self.CurrMethod.AddOp("getc",[reg])
+            self.CurrMethod.AddOp("s%s" % type,["%s(r0)" % base,reg])
         elif rmatch:
             reg = "r%s" % rmatch.group('id')
             type,param = self.GetType(param)
@@ -170,6 +181,7 @@ class MoonCompiler:
             type = self.Immediate(param)
             if type:
                 reg = self.LoadLiteral(type,param,base)
+                btype,base = self.GetType(base)
                 self.CurrMethod.AddOp("s%s" % type,["%s(r0)" % base,reg])
             else:
                 type,param = self.GetType(param)
@@ -189,7 +201,7 @@ class MoonCompiler:
     
     def HandleGt(self,base,param):
         ''' Handle '>' '''
-        self.HandleCond(base,param,'gt')
+        self.HandleCond(base,param,'gt',False)
         
     def HandleGte(self,base,param):
         ''' Handle '>=' '''
@@ -233,6 +245,7 @@ class MoonCompiler:
     
     def HandleGoto(self,base,param):
         self.CurrMethod.AddOp('j',[base])
+        self.CurrMethod.LabelNext = param
     
     def HandleLabel(self,base,param):
         self.CurrMethod.LabelNext = base
@@ -254,10 +267,12 @@ class MoonCompiler:
             if type: 
                 reg = self.LoadLiteral(type,param,base)
             else:
+                type,param = self.GetType(param)
                 self.CurrMethod.AddOp("lb",[reg,"%s(r0)" % param])
             if type == "b":
                 self.CurrMethod.AddOp("putc",[reg])
             else:
+                type,param = self.GetType(param)
                 self.CurrMethod.AddOp("lw",['r1',"%s(r0)" % param])
                 self.CurrMethod.AddOp("jl",['r15','putint'])
                 
@@ -292,6 +307,9 @@ class MoonCompiler:
         '''Open up a method block'''
         # PUll the method signature out of the global symbol definition
         signature = self.__symboltable['global'][methodname]
+        signature['internals'] = {}
+        for name,line in self.__symboltable[methodname].iteritems():
+            signature['internals'][name] = line
         frametop = self.__position
         # Generate a new CurrentMethod container
         self.CurrMethod = MoonMethod(methodname,signature,frametop)
@@ -318,9 +336,10 @@ class MoonCompiler:
     
     def WriteMFile(self):
         '''Performs the writing of the output file'''
-        self.__global.Write()
+        target = open(self.__outfile__,'w');
+        self.__global.Write(target)
         for method in self.__frames:
-            method.Write()
+            method.Write(target)
             
 class MoonMethod:
     '''
@@ -348,7 +367,7 @@ class MoonMethod:
         if type == 'int': return 32
         else: return 8
     
-    def Write(self):
+    def Write(self,file):
         pc = 0
         try:
             header = MoonMethod(None,[],None)
@@ -361,24 +380,26 @@ class MoonMethod:
                 else:
                     header.AddOp('res',[8],'%s_p%i' % (self.Name,pc))
                 pc += 1
-            header.Write()
+            for key,var in self.__signature['internals'].iteritems():
+                if var['datatype'] == 'int':
+                    header.AddOp('res',[32],'%s' % (var['name']))
+                else:
+                    header.AddOp('res',[8],'%s' % (var['name']))    
+            
+            header.Write(file)
         except:
+            print sys.exc_info()
             if self.Name == "main":
                 header = MoonMethod(None,[],None)
                 header.AddOp('res',[32],"main_rt")
-                header.Write()
+                header.Write(file)
         
         '''Write the method to the supplied file handle'''
         for op in self.__operations__:
-            # Write to a tmp file
-            file = open("tmp.m","a")
+            # Write to the output file
             file.write("%s\n" % "\t".join(op))
-            file.close()
             
 if __name__ == "__main__":
-    # Wipe the file
-    file = open("tmp.m","w")
-    file.close()
     symboltable = {'global':{'x':{'datatype': 'int', 'type': 'identifier', 'name': 'x'}, 
                              'main':{'datatype': 'void', 'type': 'function', 'name': 'main'},
                              'y':{'datatype': 'char', 'type': 'identifier', 'name': 'y'},

@@ -1,19 +1,36 @@
 class TestClass {
 
-	int x;
+	int total;
+	int tmp;
+	int count;
+	char incoming;
+	char null;
 
 	void main(){
-		x = 11;
-		x = inc(x);
-		System.out('x','=',x);
-		return x;
+		# Increments a variable by 10 and then prints the result
+		tmp = System.in.int();
+		null = System.in.char();
+		System.out('t','=',tmp);
+		tmp = inc10(tmp);
+		System.out('t','=',tmp);
+		
+		if(tmp < 20){
+			count = 20;
+			System.out('l','t',count);
+		}else{
+			tmp = tmp;
+		}
+		return total;
 	}
 	
-	int inc(int value){
-		while(value > 10){
-			value = value - 1;
+	int inc10(int var){
+		int c;
+		c = 0;
+		while(c < 10){
+			var = var + 1;
+			c = c + 1;
 		}
-		return value;
+		return var;
 	}
 }
 
