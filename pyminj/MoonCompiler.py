@@ -137,13 +137,19 @@ class MoonCompiler:
             return False,var
             
     def HandleAdd(self,base,param):
+        self.HandleMath(base,param,"add")
+    
+    def HandleMul(self,base,param):
+        self.HandleMath(base,param,"mul")
+    
+    def HandleMath(self,base,param,opbase):
         '''Handler for the add operation'''
         reg = self.GetReg()
         type,base = self.GetType(base)
         self.CurrMethod.AddOp("l%s" % type,[reg,"%s(r0)" % base])
         # If we are adding a direct param to the var, use addi
-        if self.Immediate(param): op = "addi"
-        else: op = "add"
+        if self.Immediate(param): op = "%si" % opbase
+        else: op = opbase
         self.CurrMethod.AddOp(op,[reg,reg,param])
         self.CurrMethod.AddOp("s%s" % type,["%s(r0)" % base,reg])
             
@@ -201,7 +207,11 @@ class MoonCompiler:
                 reg = self.LoadLiteral(type,param,base)
             else:
                 self.CurrMethod.AddOp("lb",[reg,"%s(r0)" % param])
-            self.CurrMethod.AddOp("putc",[reg])
+            if type == "b":
+                self.CurrMethod.AddOp("putc",[reg])
+            else:
+                self.CurrMethod.AddOp("lw",['r1',"%s(r0)" % param])
+                self.CurrMethod.AddOp("jl",['r15','putint'])
                 
         else:
             # Will never be reached under PyMinJ v1.0
@@ -303,7 +313,10 @@ class MoonMethod:
                 pc += 1
             header.Write()
         except:
-            pass
+            if self.Name == "main":
+                header = MoonMethod(None,[],None)
+                header.AddOp('res',[32],"main_rt")
+                header.Write()
         
         '''Write the method to the supplied file handle'''
         for op in self.__operations__:
@@ -326,4 +339,4 @@ if __name__ == "__main__":
     compiler.Compile()
     compiler.WriteMFile()
     # Temporarily auto-run the file
-    os.system("moon tmp.m;cat tmp.m")
+    os.system("moon /home/stephen/school/comp442/PyMinJ/moon/newlib.m tmp.m;cat tmp.m")

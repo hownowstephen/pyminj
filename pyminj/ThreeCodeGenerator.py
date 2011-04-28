@@ -110,8 +110,11 @@ class ThreeCodeGenerator:
                 function(token)
                 self.Parse()
             except:
-                #print sys.exc_info()
-                pass
+                if self.state == tcstates.RETURN:
+                    if token.GetValue() != 'main':
+                        self.AddCode(token.GetValue(), 'assign', 'return')
+                        self.AddCode(None,'return')
+                        self.ConstructCodes()
         except:
             #print sys.exc_info()
             # No more tokens exist - unless instructed not to, we can output the 
