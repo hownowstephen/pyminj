@@ -91,13 +91,10 @@ class MoonCompiler:
         else:
             type = self.Immediate(param)
             if type:
-                var = self.GetTmp()
-                vol = self.GetReg() # Retrieve a volatile register to use
-                self.__global.AddOp("d%s" % type,[param.replace("'",'"'),13,10,0],var)
-                self.CurrMethod.AddOp("l%s" % type,[vol,"%s(r0)" % var])
-                self.CurrMethod.AddOp("s%s" % type,["%s(r0)" % base,vol])
+                reg = self.LoadLiteral(type,param,base)
+                self.CurrMethod.AddOp("s%s" % type,["%s(r0)" % base,reg])
             else:
-                var = param
+                pass
     
     def HandleBfalse(self,base,param):
         pass
@@ -124,9 +121,12 @@ class MoonCompiler:
         if base == 'stdout':
             reg = self.GetReg()
             type = self.Immediate(param)
-            if not type:
+            if type: 
+                reg = self.LoadLiteral(type,param,base)
+            else:
                 self.CurrMethod.AddOp("lb",[reg,"%s(r0)" % param])
-                self.CurrMethod.AddOp("putc",[reg])
+            self.CurrMethod.AddOp("putc",[reg])
+                
         else:
             print "Printing to other pipes not supported by the moon VM at this time: print %s" % base
     
@@ -144,6 +144,13 @@ class MoonCompiler:
         #checks for char
         if re.match("'.'",item): return "b"
         return False
+    
+    def LoadLiteral(self,type,param,base):
+        var = self.GetTmp()
+        vol = self.GetReg() # Retrieve a volatile register to use
+        self.__global.AddOp("d%s" % type,[param.replace("'",'"'),13,10,0],var)
+        self.CurrMethod.AddOp("l%s" % type,[vol,"%s(r0)" % var])
+        return vol
     
     def OpenMethod(self,methodname):
         '''Open up the method'''
