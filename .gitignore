@@ -1,2 +1,8 @@
 *.pyo
 *.pyc
+moon/moon
+*.m
+*.tmp
+*.listing
+.project
+.pydevproject

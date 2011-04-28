@@ -43,6 +43,7 @@ while True:
     
     # If the token is False, we are done parsing, so we cleanup and finish listing
     if not token:
+        parser.symboltable.Print()
         try:
             parser.CheckStack()
         except MissingTokenException as e:
@@ -56,6 +57,7 @@ while True:
         try:
             state = parser.ParseToken(token)
             parser.symboltable.HandleState(state,token)
+            # parser.symboltable.Print()
             # symbolTable.Analyze(token);
         except SyntaxException as e:
             scanner.WriteLine()

@@ -305,7 +305,7 @@ class ThreeCodeGenerator:
         tmp = self.IncTmp()
         self.AddCode(self.basevar,Token("ASSIGN","="),tmp)
         self.AddCode(token,self.currOperator,tmp)
-        self.AddCode("else%i" % NESTLEVEL,"branch_false",tmp);
+        self.AddCode("else%i" % NESTLEVEL,"bfalse",tmp);
         
     def GenerateWhile(self,token):
         '''Generator for condition block codes'''
@@ -315,7 +315,7 @@ class ThreeCodeGenerator:
         whileLoops[target] = []
         whileLoops[target].append(self.AddCode(self.basevar,Token("ASSIGN","="),tmp,True))
         whileLoops[target].append(self.AddCode(token,self.currOperator,tmp,True))
-        whileLoops[target].append(self.AddCode(target,"branch_true",tmp,True))
+        whileLoops[target].append(self.AddCode(target,"btrue",tmp,True))
         
         
     def HandleOperator(self,token):

@@ -186,6 +186,13 @@ class SymbolTable:
                 return self.contexts['global'][Identifier]
             except:
                 return False
+            
+    def GetContext(self,Context):
+        '''Retrieves a certain context from the symbol table'''
+        try:
+            return self.contexts[Context]
+        except:
+            return False
     
     def Print(self):
         '''Debug function, prints the entire symbol table'''

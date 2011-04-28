@@ -1,0 +1,22 @@
+class TestClass {
+
+	char x;
+
+	void main(){
+		x = 'x';
+		System.out('x','=',x);
+		return x;
+	}
+}
+
+# class TestClass { 
+#  	int x;
+# 	void main(){
+#		x = printchars(x);
+#		return x;
+#	}	
+#	int printchars(){
+# 		System.out('x','y','z');
+# 		return 0;
+# 	}
+# }
