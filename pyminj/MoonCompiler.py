@@ -40,10 +40,11 @@ class MoonCompiler:
                 self.codes.append(code)
         self.__outfile__ = out;
         self.__symboltable = symboltable
+        self.CurrMethod = None
     
     def Compile(self):
         '''Perform the compilation using the generated symboltable'''
-        print self.__symboltable
+        #print self.__symboltable
         
         self.__global = MoonMethod('global',{},self.__position)
         
@@ -61,7 +62,7 @@ class MoonCompiler:
             try:    param = line[2]
             except: param = ''
             method = "Handle%s" % command.capitalize()
-            #print "ORIG: %s %s %s" % (command,base,param)
+            #if self.CurrMethod: self.CurrMethod.AddOp("ORIG: %s %s %s" % (command,base,param))
             if hasattr(self,method):
                 _method = getattr(self,method)
                 _method(base,param)
@@ -69,16 +70,43 @@ class MoonCompiler:
                 print "No handler configured for %s" % command
     
     def GetReg(self):
-        '''Retrieve the next available volatile register (round robin to allow for maximized access'''
+        '''Retrieve the next available volatile register (round robin to allow for maximized access)'''
         self.Register += 1
         if self.Register > 15:
             self.Register = 6
         return "r%i" % self.Register
     
     def GetTmp(self):
+        '''Retrieve the next temporary variable, variously used to store constant data and implicit vars'''
         self.Tmp += 1
         return "t%i" % self.Tmp;
     
+    def GetType(self,var):
+        if var == "return":
+            datatype =  self.__symboltable['global'][self.CurrMethod.Name]['datatype']
+        else:
+            try:
+                datatype = self.__symboltable[self.CurrMethod.Name][var]['datatype']
+            except:
+                # Try a member variable
+                try:
+                    datatype =  self.__symboltable['global'][var]['datatype']
+                # Try a param
+                except:
+                    pc = 0
+                    for param in self.__symboltable['global'][self.CurrMethod.Name]['params']:
+                        if param['name'] == var:
+                            datatype = param['datatype']
+                            var = "%s_p%i" % (self.CurrMethod.Name,pc)
+                            break
+                        pc += 1
+        if datatype == "int":
+            return "w",var
+        elif datatype == "char":
+            return "b",var
+        else:
+            return False
+            
     def HandleAdd(self,base,param):
         pass
     
@@ -86,6 +114,7 @@ class MoonCompiler:
         pass
     
     def HandleAssign(self,base,param):
+        '''Handle assignment method'''
         if param == "system.in":
             self.CurrMethod.AddOp("getc",[base])
         else:
@@ -94,7 +123,10 @@ class MoonCompiler:
                 reg = self.LoadLiteral(type,param,base)
                 self.CurrMethod.AddOp("s%s" % type,["%s(r0)" % base,reg])
             else:
-                pass
+                type,param = self.GetType(param)
+                reg = self.GetReg()
+                self.CurrMethod.AddOp("l%s" % type,[reg,"%s(r0)" % param])
+                self.CurrMethod.AddOp("s%s" % type,["%s_rt(r0)" % self.CurrMethod.Name,reg])
     
     def HandleBfalse(self,base,param):
         pass
@@ -128,7 +160,8 @@ class MoonCompiler:
             self.CurrMethod.AddOp("putc",[reg])
                 
         else:
-            print "Printing to other pipes not supported by the moon VM at this time: print %s" % base
+            # Will never be reached under PyMinJ v1.0
+            pass
     
     def HandleReturn(self,base,param):
         pass
@@ -186,7 +219,7 @@ class MoonMethod:
     def __init__(self,name,signature,top):
         '''Takes a label name and a signature, which is the method signature for the given method'''
         self.Name = name
-        self.Signature = signature
+        self.__signature = signature
         self.Top = top
         self.__operations__ = []
         self.LabelNext = None
@@ -199,8 +232,26 @@ class MoonMethod:
         op = [varname,opcode]
         if params: op.append(','.join(map(str,params)))
         self.__operations__.append(op)
+        
+    def GetSize(self,type):
+        if type == 'int': return 32
+        else: return 8
     
     def Write(self):
+        pc = 0
+        try:
+            header = MoonMethod(None,[],None)
+            header.AddOp('res',[self.GetSize(self.__signature['datatype'])],'%s_rt' % self.Name)
+            for param in self.__signature['params']:
+                if param['datatype'] == 'int':
+                    header.AddOp('res',[32],'%s_p%i' % (self.Name,pc))
+                else:
+                    header.AddOp('res',[8],'%s_p%i' % (self.Name,pc))
+                pc += 1
+            header.Write()
+        except:
+            pass
+        
         '''Write the method to the supplied file handle'''
         for op in self.__operations__:
             # Write to a tmp file
@@ -214,7 +265,9 @@ if __name__ == "__main__":
     file.close()
     symboltable = {'global':{'x':{'datatype': 'int', 'type': 'identifier', 'name': 'x'}, 
                              'main':{'datatype': 'void', 'type': 'function', 'name': 'main'},
-                             'printchars': {'datatype': 'int', 'type': 'function', 'name': 'printchars'}}
+                             'y':{'datatype': 'char', 'type': 'identifier', 'name': 'y'},
+                             'printchars': {'datatype': 'int', 'type': 'function', 'name': 'printchars'},
+                             'inc': {'datatype': 'int', 'params': [{'datatype': 'int', 'name': 'value'}], 'type': 'function', 'name': 'inc'}}
                   }
     compiler = MoonCompiler("output.mc",symboltable)
     compiler.Compile()

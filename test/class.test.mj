@@ -1,11 +1,16 @@
 class TestClass {
 
-	char x;
+	int x;
+	char y;
 
 	void main(){
-		x = 'x';
+		y = 'x';
 		System.out('x','=',x);
 		return x;
+	}
+	
+	int inc(int value){
+		return value + 1;
 	}
 }
 
