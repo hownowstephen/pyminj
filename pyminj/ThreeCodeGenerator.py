@@ -320,7 +320,6 @@ class ThreeCodeGenerator:
         whileLoops[target].append(self.AddCode(token,self.currOperator,tmp,True))
         whileLoops[target].append(self.AddCode(target,"btrue",tmp,True))
         
-        
     def HandleOperator(self,token):
         '''Handler for operators'''
         self.currOperator = token

@@ -3,17 +3,15 @@ class TestClass {
 	int x;
 
 	void main(){
-		x = 2;
+		x = 11;
 		x = inc(x);
 		System.out('x','=',x);
 		return x;
 	}
 	
 	int inc(int value){
-		if(value != 2){
-			value = value * -1020; 
-		}else{
-			value = value * 1000;
+		while(value > 10){
+			value = value - 1;
 		}
 		return value;
 	}

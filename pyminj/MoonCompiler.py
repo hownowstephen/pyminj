@@ -236,6 +236,7 @@ class MoonCompiler:
     
     def HandleLabel(self,base,param):
         self.CurrMethod.LabelNext = base
+        self.CurrMethod.AddOp("nop")
     
     def HandleMethod(self,base,param):
         if param == "start":
