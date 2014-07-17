@@ -5,7 +5,7 @@
 @class Scanner
 @brief Manages the tokenizing of MinJ code as specified by the accompanying language documentation
 @note All documentation can be found in /doc/
-@author Stephen Young (stephen.t.young@gmail.com)
+@author Stephen Young (stephen@tryllo.com)
 '''
 
 from SimpleDFA import SimpleDFA
